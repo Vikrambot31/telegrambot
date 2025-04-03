@@ -76,7 +76,15 @@ def main():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     print("✅ Бот запущен. Ожидаю сообщения...")
-    app.run_polling()
+    PORT = int(os.environ.get("PORT", 5000))
+
+app.run_webhook(
+    listen="0.0.0.0",
+    port=PORT,
+    url_path=TOKEN,
+    webhook_url=f"https://{your_render_service_url}/{TOKEN}"
+)
+
 
 if __name__ == "__main__":
     main()
