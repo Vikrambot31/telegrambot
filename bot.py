@@ -3,12 +3,10 @@ from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import (
     ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 )
-from dotenv import load_dotenv
 
-load_dotenv()
-
-TOKEN = os.getenv("TOKEN")  # Убедись, что переменная окружения задана на Render
+TOKEN = os.getenv("TOKEN")
 PORT = int(os.environ.get("PORT", 8443))
+
 
 # Главное меню
 main_menu = [
