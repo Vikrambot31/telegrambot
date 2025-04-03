@@ -1,60 +1,64 @@
 import os
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import (
-    ApplicationBuilder,
-    CommandHandler,
-    MessageHandler,
-    ContextTypes,
-    filters
+    ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 )
+from dotenv import load_dotenv
 
-# Получаем токен и порт из переменных окружения
-TOKEN = os.getenv("TOKEN")
+load_dotenv()
+
+TOKEN = os.getenv("TOKEN")  # Убедись, что переменная окружения задана на Render
 PORT = int(os.environ.get("PORT", 8443))
 
 # Главное меню
 main_menu = [
-    ["✴* Бесплатный разбор"],
-    ["💎 Платный разбор от 15$"],
-    ["🧠 Пакет VIP от 60$"],
-    ["🔍 Обо Мне / Система / Отзывы"]
+    ["* Бесплатный разбор"],
+    ["💸 Платный разбор от 15$"],
+    ["👑 Пакет VIP от 60$"],
+    ["📍 Обо Мне / Система / Отзывы"]
 ]
 
-# Команда /start
+# Обработка команды /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
 
-    # Отправляем стикер
-    with open("sticker1.webp", "rb") as sticker:
-        await context.bot.send_sticker(chat_id=chat_id, sticker=sticker)
+    # Отправка стикера
+    try:
+        with open("sticker1.webp", "rb") as sticker:
+            await context.bot.send_sticker(chat_id=chat_id, sticker=sticker)
+    except Exception as e:
+        print(f"Ошибка при отправке стикера: {e}")
 
-    # Отправляем аудио (mp3 как аудио-файл)
-    with open("intro-0.mp3", "rb") as voice:
-        await context.bot.send_audio(chat_id=chat_id, audio=voice)
+    # Отправка голосового
+    try:
+        with open("intro-0.mp3", "rb") as voice:
+            await context.bot.send_audio(chat_id=chat_id, audio=voice)
+    except Exception as e:
+        print(f"Ошибка при отправке аудио: {e}")
 
-    # Отправляем текстовое приветствие
-    await update.message.reply_text(
-        "Приветствую вас! С вами Викрам!\n\nВыберите пункт меню:",
+    # Отправка приветствия и меню
+    await context.bot.send_message(
+        chat_id=chat_id,
+        text="Добрый день! нажмите слово 'разбор' для старта.",
         reply_markup=ReplyKeyboardMarkup(main_menu, resize_keyboard=True)
     )
 
-# Обработка текстовых сообщений
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_text = update.message.text.lower()
+# Обработка сообщений
+async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text = update.message.text.lower()
 
-    if "разбор" in user_text:
-        await update.message.reply_text("Вы выбрали 'Разбор'. Введите ваши данные для начала.")
+    if "разбор" in text:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Вы выбрали 'разбор'. Ожидайте инструкций.")
     else:
-        await update.message.reply_text("Пожалуйста, выберите один из пунктов меню.")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Пожалуйста, используйте кнопки меню.")
 
-# Основная точка входа
+# Запуск
 def main():
     app = ApplicationBuilder().token(TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler))
 
-    # Запускаем бота через Webhook
     app.run_webhook(
         listen="0.0.0.0",
         port=PORT,
