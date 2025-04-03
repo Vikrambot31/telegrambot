@@ -2,89 +2,58 @@ from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 import os
 
-TOKEN = os.getenv("TOKEN")  # Убедись, что переменная окружения TOKEN настроена правильно
+# Получаем токен из переменной окружения
+TOKEN = os.getenv("TOKEN")  # Убедись, что переменная окружения TOKEN задана правильно
 
 # Главное меню
 main_menu = [
-    ["⭐️ Бесплатный разбор"],
-    ["💸 Платный разбор от 15$"],
-    ["👑 Пакет VIP от 60$"],
-    ["ℹ️ Обо Мне / Система / Отзывы"]
+    ["* Бесплатный разбор"],
+    ["💎 Платный разбор от 15$"],
+    ["🧠 Пакет VIP от 60$"],
+    ["📝 Обо Мне / Система / Отзывы"]
 ]
-
-markup_main = ReplyKeyboardMarkup(main_menu, resize_keyboard=True)
-
-# Ответы по разделам
-free_text = (
-    "📌 2 ПРОСТЫХ ШАГА:\n"
-    "1. Прислать мне рисунок:\n"
-    "📌 pic1.png\n📌 pic2.png\n📌 pic3.png\n🎧 Intro-1.mp3\n\n"
-    "✉️ Написать мне – https://t.me/Vikram_2027"
-)
-
-paid_text = (
-    "💰 Платные услуги для Вас:\n"
-    "— 15 долларов (650 грн)\n"
-    "📌 pic4.png\n📌 pic4-1.png\n📌 pic5.png\n🎧 Intro-2.mp3\n\n"
-    "✉️ Написать мне – https://t.me/Vikram_2027\n\n"
-    "📜 Вопросы до встречи: 📌 Voprosi.png"
-)
-
-vip_text = (
-    "👑 VIP Услуги от 60$:\n"
-    "📌 pic6.png\n📌 pic5.png\n🎧 Intro-3.mp3\n\n"
-    "✉️ Написать мне – https://t.me/Vikram_2027\n\n"
-    "📜 Вопросы до встречи: 📌 Voprosi.png"
-)
-
-info_text = (
-    "ℹ️ Информация:\n"
-    "— Как проходит встреча (online)\n"
-    "— Не знаете время рождения?\n"
-    "— Отзывы: 📌 otziv.png\n"
-    "— Instagram: https://www.instagram.com/vikram_hd_2027\n"
-    "— О системе: https://surl.gd/jlbtay"
-)
 
 # Команда /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_sticker(sticker=open("sticker1.webp", "rb"))
-    await update.message.reply_audio(audio=open("Intro-0.mp3", "rb"))
     await update.message.reply_text(
-        "Приветствую вас, с вами Викрам!\n\nПожалуйста, выберите один из вариантов ниже 👇",
-        reply_markup=markup_main
+        "Привет! Выбери пункт меню:",
+        reply_markup=ReplyKeyboardMarkup(main_menu, resize_keyboard=True)
     )
 
-# Обработка выбора пользователя
+# Обработка всех текстовых сообщений
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text
 
-    if "Бесплатный разбор" in text:
-        await update.message.reply_text(free_text, disable_web_page_preview=True)
-    elif "Платный разбор от 15$" in text:
-        await update.message.reply_text(paid_text, disable_web_page_preview=True)
-    elif "VIP" in text:
-        await update.message.reply_text(vip_text, disable_web_page_preview=True)
-    elif "Обо Мне" in text:
-        await update.message.reply_text(info_text, disable_web_page_preview=True)
+    if text == "* Бесплатный разбор":
+        await update.message.reply_text("Ты выбрал бесплатный разбор. Отправь дату и время рождения.")
+    elif text == "💎 Платный разбор от 15$":
+        await update.message.reply_text("Платный разбор стоит от 15$. Оплата и подробности — по ссылке.")
+    elif text == "🧠 Пакет VIP от 60$":
+        await update.message.reply_text("VIP-разбор включает Zoom и полное сопровождение.")
+    elif text == "📝 Обо Мне / Система / Отзывы":
+        with open("otziv.png", "rb") as photo:
+            await update.message.reply_photo(photo)
+        await update.message.reply_text("Я Викрам. Работаю с Human Design, психогенетикой, гештальт-подходом.")
     else:
-        await update.message.reply_text("❗️Пожалуйста, выберите вариант из меню.")
+        await update.message.reply_text("Пожалуйста, выбери пункт из меню.")
 
-# Запуск бота
+# Главная точка входа
 def main():
     app = ApplicationBuilder().token(TOKEN).build()
+
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-    print("✅ Бот запущен. Ожидаю сообщения...")
+
+    print("✅ Бот запущен через Webhook.")
+
+    # Настройка Webhook для Render
     PORT = int(os.environ.get("PORT", 5000))
-
-app.run_webhook(
-    listen="0.0.0.0",
-    port=PORT,
-    url_path=TOKEN,
-    webhook_url=f"https://{your_render_service_url}/{TOKEN}"
-)
-
+    app.run_webhook(
+        listen="0.0.0.0",
+        port=PORT,
+        url_path=TOKEN,
+        webhook_url=f"https://<ТВОЙ-ДОМЕН>.onrender.com/{TOKEN}"  # ЗАМЕНИ <ТВОЙ-ДОМЕН>
+    )
 
 if __name__ == "__main__":
     main()
