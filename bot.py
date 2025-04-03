@@ -48,7 +48,7 @@ info_text = (
 
 # Команда /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_sticker(sticker=open("Sticker1.webp", "rb"))
+    await update.message.reply_sticker(sticker=open("sticker1.webp", "rb"))
     await update.message.reply_audio(audio=open("Intro-0.mp3", "rb"))
     await update.message.reply_text(
         "Приветствую вас, с вами Викрам!\n\nПожалуйста, выберите один из вариантов ниже 👇",
