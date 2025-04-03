@@ -2,7 +2,9 @@ from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 from telegram.constants import ChatAction
 
-TOKEN = "YOUR_TOKEN_HERE"
+import os
+TOKEN = os.getenv("TOKEN")
+
 
 main_menu = [
     ["⭐️ Бесплатный разбор"],
