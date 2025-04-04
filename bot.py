@@ -56,7 +56,7 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="Пожалуйста, используйте кнопки меню.")
 
-# Запуск
+# Запуск бота через Webhook
 def main():
     app = ApplicationBuilder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
@@ -70,6 +70,4 @@ def main():
     )
 
 if __name__ == "__main__":
-    print("Бот запущен через polling.")
-    app.run_polling()
-
+    main()
