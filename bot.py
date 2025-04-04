@@ -49,7 +49,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             with open("intro-1.ogg", "rb") as audio:
                 await context.bot.send_audio(chat_id, audio)
         except Exception as e:
-            print(f"[Ошибка intro-1]: {e}")
+            print(f"[Ошибка intro-1.ogg]: {e}")
+        await update.message.reply_text("https://freehumandesignchart.com/")
 
     elif "платный" in text:
         await update.message.reply_text("💸 Платный разбор. Информация ниже.")
@@ -63,7 +64,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             with open("intro-2.ogg", "rb") as audio:
                 await context.bot.send_audio(chat_id, audio)
         except Exception as e:
-            print(f"[Ошибка intro-2]: {e}")
+            print(f"[Ошибка intro-2.ogg]: {e}")
 
     elif "vip" in text:
         await update.message.reply_text("👑 Пакет VIP: смотрите материалы ниже.")
@@ -77,11 +78,19 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             with open("intro-3.ogg", "rb") as audio:
                 await context.bot.send_audio(chat_id, audio)
         except Exception as e:
-            print(f"[Ошибка intro-3]: {e}")
+            print(f"[Ошибка intro-3.ogg]: {e}")
 
     elif "обо мне" in text:
-        await update.message.reply_text("Я Викрам, профессиональный аналитик по Human Design и психолог.")
-        await update.message.reply_text("Отзывы: https://t.me/Vikram_2027")
+        await update.message.reply_text(
+            "Здесь вы можете прочитать про отзывы и систему - "
+            "а также прослушать здесь отрывок из обычной сессии как пример:\n"
+            "https://www.instagram.com/vikram_hd_2027"
+        )
+        try:
+            with open("primer_razbora.ogg", "rb") as audio:
+                await context.bot.send_audio(chat_id, audio)
+        except Exception as e:
+            print(f"[Ошибка primer_razbora.ogg]: {e}")
 
     elif "связаться" in text:
         await update.message.reply_text("Нажмите кнопку ниже:", reply_markup=get_inline_button())
