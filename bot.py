@@ -13,9 +13,9 @@ keyboard = [
 markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
 
 def get_inline_button():
-    return InlineKeyboardMarkup(
-        [[InlineKeyboardButton("написать Викраму лично", url="https://t.me/Vikram_2027")]]
-    )
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton("написать Викраму лично", url="https://t.me/Vikram_2027")]
+    ])
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
@@ -50,7 +50,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await context.bot.send_audio(chat_id, audio)
         except Exception as e:
             print(f"[Ошибка intro-1.ogg]: {e}")
-        await update.message.reply_text("https://freehumandesignchart.com/")
+
+        await update.message.reply_text("https://freehumandesignchart.com/")  # Ссылка без автоформата
 
     elif "платный" in text:
         await update.message.reply_text("💸 Платный разбор. Информация ниже.")
@@ -82,9 +83,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     elif "обо мне" in text:
         await update.message.reply_text(
-            "Здесь вы можете прочитать про отзывы и систему - "
-            "а также прослушать здесь отрывок из обычной сессии как пример:\n"
-            "https://www.instagram.com/vikram_hd_2027"
+            "Здесь вы можете прочитать про отзывы и систему — мой Instagram:\n"
+            "https://www.instagram.com/vikram_hd_2027\n"
+            "Ниже — пример реальной сессии:"
         )
         try:
             with open("primer_razbora.ogg", "rb") as audio:
