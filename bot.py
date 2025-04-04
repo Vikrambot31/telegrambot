@@ -4,7 +4,6 @@ from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, Con
 from dotenv import load_dotenv
 import telegram.error
 
-# Загрузка переменных окружения
 load_dotenv()
 TOKEN = os.getenv("TOKEN")
 PORT = int(os.environ.get("PORT", 8443))
@@ -47,13 +46,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 with open(fname, "rb") as img:
                     await context.bot.send_photo(chat_id, img)
             except Exception as e:
-                print(f"[Ошибка {fname}]: {e}")
+                print(f"[Ошибка изображения {fname}]: {e}")
         try:
             with open("intro-1.ogg", "rb") as audio:
                 await context.bot.send_audio(chat_id, audio)
         except Exception as e:
             print(f"[Ошибка аудио бесплатного разбора]: {e}")
-        await update.message.reply_text("связаться со мной лично\nhttps://t.me/Vikram_2027")
+        await update.message.reply_text("связаться со мной лично\n`t.me/Vikram_2027`", parse_mode="MarkdownV2")
 
     elif "платный" in text:
         await update.message.reply_text("💸 Платный разбор. Информация ниже.")
@@ -62,13 +61,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 with open(fname, "rb") as img:
                     await context.bot.send_photo(chat_id, img)
             except Exception as e:
-                print(f"[Ошибка {fname}]: {e}")
+                print(f"[Ошибка изображения {fname}]: {e}")
         try:
             with open("intro-2.ogg", "rb") as audio:
                 await context.bot.send_audio(chat_id, audio)
         except Exception as e:
             print(f"[Ошибка аудио платного разбора]: {e}")
-        await update.message.reply_text("связаться со мной лично\nhttps://t.me/Vikram_2027")
+        await update.message.reply_text("связаться со мной лично\n`t.me/Vikram_2027`", parse_mode="MarkdownV2")
 
     elif "vip" in text:
         await update.message.reply_text("👑 Пакет VIP: смотрите материалы ниже.")
@@ -77,13 +76,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 with open(fname, "rb") as img:
                     await context.bot.send_photo(chat_id, img)
             except Exception as e:
-                print(f"[Ошибка {fname}]: {e}")
+                print(f"[Ошибка изображения {fname}]: {e}")
         try:
             with open("intro-3.ogg", "rb") as audio:
                 await context.bot.send_audio(chat_id, audio)
         except Exception as e:
             print(f"[Ошибка аудио VIP]: {e}")
-        await update.message.reply_text("связаться со мной лично\nhttps://t.me/Vikram_2027")
+        await update.message.reply_text("связаться со мной лично\n`t.me/Vikram_2027`", parse_mode="MarkdownV2")
 
     elif "отзывы" in text or "обо мне" in text:
         await update.message.reply_text("📌 Отзывы и информация:")
@@ -95,7 +94,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         except Exception as e:
             print(f"[Ошибка отзывов]: {e}")
         await update.message.reply_text("🔗 Instagram: https://www.instagram.com/vikram_hd_2027")
-        await update.message.reply_text("связаться со мной лично\nhttps://t.me/Vikram_2027")
+        await update.message.reply_text("связаться со мной лично\n`t.me/Vikram_2027`", parse_mode="MarkdownV2")
 
     else:
         await update.message.reply_text("Выберите вариант из меню ниже 👇")
