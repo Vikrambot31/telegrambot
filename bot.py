@@ -70,4 +70,6 @@ def main():
     )
 
 if __name__ == "__main__":
-    main()
+    print("Бот запущен через polling.")
+    app.run_polling()
+
