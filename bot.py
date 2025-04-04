@@ -19,21 +19,18 @@ main_menu = [
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
 
-    # Отправка стикера
     try:
         with open("s1.webp", "rb") as sticker:
             await context.bot.send_sticker(chat_id=chat_id, sticker=sticker)
     except Exception as e:
         print(f"Ошибка при отправке стикера: {e}")
 
-    # Отправка голосового (intro-0.ogg)
     try:
         with open("intro-0.ogg", "rb") as voice:
             await context.bot.send_voice(chat_id=chat_id, voice=voice)
     except Exception as e:
         print(f"Ошибка при отправке голосового: {e}")
 
-    # Приветственное сообщение и кнопки
     await context.bot.send_message(
         chat_id=chat_id,
         text="Добрый день! нажмите слово 'разбор' для старта.",
@@ -42,21 +39,33 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # Обработка всех сообщений
 async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text = update.message.text.lower()
+    text = update.message.text.strip()
 
-    if "разбор" in text:
-        await context.bot.send_message(chat_id=update.effective_chat.id, text="Вы выбрали 'разбор'. Ожидайте инструкций.")
-    elif "отзывы" in text:
+    if text == "* Бесплатный разбор":
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Вы выбрали 'бесплатный разбор'. Ожидайте инструкций.")
+        # При необходимости добавь: await context.bot.send_voice(...) или другое действие
+
+    elif text == "💸 Платный разбор от 15$":
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Платный разбор стоит от 15$. Напишите, что хотите разобрать.")
+
+    elif text == "👑 Пакет VIP от 60$":
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Пакет VIP от 60$ включает личную сессию и подробный анализ.")
+
+    elif "отзывы" in text.lower():
         await update.message.reply_text("Вот отзывы обо мне:")
         try:
             with open("o1.png", "rb") as photo:
                 await context.bot.send_photo(chat_id=update.effective_chat.id, photo=photo)
         except Exception as e:
             print(f"Ошибка при отправке фото отзыва: {e}")
+
+    elif "обо мне" in text.lower() or "система" in text.lower():
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Я Викрам, гештальт-психолог. Использую Human Design. Подробнее — см. профиль.")
+
     else:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="Пожалуйста, используйте кнопки меню.")
 
-# Запуск через polling
+# Запуск
 def main():
     app = ApplicationBuilder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
