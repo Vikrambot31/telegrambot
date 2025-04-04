@@ -1,46 +1,45 @@
-import os
 from telegram import Update, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 import telegram.error
 
-# Прямо вписываем токен
+# Токен напрямую в коде
 TOKEN = "7419809164:AAHofDyitmblhjCszawIJpzdHTmwgANIHrw"
 
-# Клавиатура меню
+# Главное меню
 keyboard = [
     ["🆓 Бесплатный разбор"],
     ["💸 Платный разбор от 15$"],
     ["👑 Пакет VIP от 60$"],
-    ["📌 Обо мне / Отзывы"]
+    ["📌 Обо мне / Отзывы"],
+    ["📞 Связаться со мной"]
 ]
 markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
 
-# Универсальная кнопка "написать Викраму лично"
+# Кнопка перехода в Telegram
 def get_inline_button():
-    return InlineKeyboardMarkup([[InlineKeyboardButton("написать Викраму лично", url="https://t.me/Vikram_2027")]])
+    return InlineKeyboardMarkup(
+        [[InlineKeyboardButton("написать Викраму лично", url="https://t.me/Vikram_2027")]]
+    )
 
-# /start
+# Команда /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
 
-    # Стикер
     try:
         with open("s1.webp", "rb") as sticker:
             await context.bot.send_sticker(chat_id, sticker)
     except Exception as e:
-        print(f"[Стикер ошибка]: {e}")
+        print(f"[Ошибка стикера]: {e}")
 
-    # Приветствие
     await update.message.reply_text("Приветствую вас, с вами Викрам!", reply_markup=markup)
 
-    # Аудио
     try:
         with open("intro-0.ogg", "rb") as audio:
             await context.bot.send_audio(chat_id, audio)
     except Exception as e:
-        print(f"[Аудио приветствия ошибка]: {e}")
+        print(f"[Ошибка intro-0.ogg]: {e}")
 
-# Обработка всех кнопок
+# Обработка сообщений
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     text = update.message.text.lower()
@@ -58,7 +57,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await context.bot.send_audio(chat_id, audio)
         except Exception as e:
             print(f"[Ошибка intro-1]: {e}")
-        await update.message.reply_text(" ", reply_markup=get_inline_button())
 
     elif "платный" in text:
         await update.message.reply_text("💸 Платный разбор. Информация ниже.")
@@ -73,7 +71,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await context.bot.send_audio(chat_id, audio)
         except Exception as e:
             print(f"[Ошибка intro-2]: {e}")
-        await update.message.reply_text(" ", reply_markup=get_inline_button())
 
     elif "vip" in text:
         await update.message.reply_text("👑 Пакет VIP: смотрите материалы ниже.")
@@ -88,7 +85,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await context.bot.send_audio(chat_id, audio)
         except Exception as e:
             print(f"[Ошибка intro-3]: {e}")
-        await update.message.reply_text(" ", reply_markup=get_inline_button())
 
     elif "отзывы" in text or "обо мне" in text:
         await update.message.reply_text("📌 Отзывы и информация:")
@@ -99,20 +95,23 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await context.bot.send_audio(chat_id, audio)
         except Exception as e:
             print(f"[Ошибка отзывов]: {e}")
-        await update.message.reply_text("🔗 Instagram: https://www.instagram.com/vikram_hd_2027")
-        await update.message.reply_text(" ", reply_markup=get_inline_button())
+        await update.message.reply_text("🔗 Instagram (скопируйте): https://www.instagram.com/vikram_hd_2027")
+
+    elif "связаться" in text:
+        await update.message.reply_text("Перейдите по ссылке, чтобы написать Викраму:")
+        await update.message.reply_text("https://t.me/Vikram_2027")
 
     else:
-        await update.message.reply_text("Выберите вариант из меню ниже 👇")
+        await update.message.reply_text("Выберите один из вариантов в меню ниже ⬇️")
 
-# Запуск
+# Запуск приложения
 if __name__ == "__main__":
     app = ApplicationBuilder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
     try:
-        print("Бот запущен.")
+        print("✅ Бот запущен. Ожидаем команды...")
         app.run_polling()
     except telegram.error.Conflict:
-        print("⚠️ Бот уже работает где-то ещё. Остановите второй экземпляр.")
+        print("⚠️ Конфликт: бот уже запущен где-то ещё.")
