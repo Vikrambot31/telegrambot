@@ -8,7 +8,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Вставляем токен напрямую
+# Токен Telegram-бота
 TOKEN = "7419809164:AAHofDyitmblhjCszawIJpzdHTmwgANIHrw"
 
 # Команда /start
@@ -17,18 +17,21 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         [InlineKeyboardButton("🔗 Написать Викраму лично", url="https://t.me/Vikram_2027")]
     ]
     await update.message.reply_text(
-        "Добро пожаловать!
-Нажмите кнопку ниже, чтобы связаться со мной:",
+        "Добро пожаловать!\nНажмите кнопку ниже, чтобы связаться со мной:",
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
 
-# Команда /reset для сброса старого интерфейса
+# Команда /reset
 async def reset(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     keyboard = [
         [InlineKeyboardButton("🔗 Написать Викраму лично", url="https://t.me/Vikram_2027")]
     ]
-    await update.message.reply_text("Меню сброшено:", reply_markup=InlineKeyboardMarkup(keyboard))
+    await update.message.reply_text(
+        "Меню сброшено. Нажмите кнопку ниже для связи:",
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
 
+# Основная функция запуска
 def main():
     application = Application.builder().token(TOKEN).build()
     application.add_handler(CommandHandler("start", start))
