@@ -1,14 +1,12 @@
 import os
-from telegram import Update, ReplyKeyboardMarkup
+from telegram import Update, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
-from dotenv import load_dotenv
 import telegram.error
 
-load_dotenv()
-TOKEN = os.getenv("TOKEN")
-PORT = int(os.environ.get("PORT", 8443))
+# Прямо вписываем токен
+TOKEN = "7419809164:AAHofDyitmblhjCszawIJpzdHTmwgANIHrw"
 
-# Клавиатура
+# Клавиатура меню
 keyboard = [
     ["🆓 Бесплатный разбор"],
     ["💸 Платный разбор от 15$"],
@@ -17,24 +15,32 @@ keyboard = [
 ]
 markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
 
-# Команда /start
+# Универсальная кнопка "написать Викраму лично"
+def get_inline_button():
+    return InlineKeyboardMarkup([[InlineKeyboardButton("написать Викраму лично", url="https://t.me/Vikram_2027")]])
+
+# /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
+
+    # Стикер
     try:
         with open("s1.webp", "rb") as sticker:
             await context.bot.send_sticker(chat_id, sticker)
     except Exception as e:
-        print(f"[Ошибка стикера]: {e}")
+        print(f"[Стикер ошибка]: {e}")
 
+    # Приветствие
     await update.message.reply_text("Приветствую вас, с вами Викрам!", reply_markup=markup)
 
+    # Аудио
     try:
         with open("intro-0.ogg", "rb") as audio:
             await context.bot.send_audio(chat_id, audio)
     except Exception as e:
-        print(f"[Ошибка аудио приветствия]: {e}")
+        print(f"[Аудио приветствия ошибка]: {e}")
 
-# Обработка сообщений
+# Обработка всех кнопок
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     text = update.message.text.lower()
@@ -51,8 +57,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             with open("intro-1.ogg", "rb") as audio:
                 await context.bot.send_audio(chat_id, audio)
         except Exception as e:
-            print(f"[Ошибка аудио бесплатного разбора]: {e}")
-        await update.message.reply_text("связаться со мной лично\n`t.me/Vikram_2027`", parse_mode="Markdown")
+            print(f"[Ошибка intro-1]: {e}")
+        await update.message.reply_text(" ", reply_markup=get_inline_button())
 
     elif "платный" in text:
         await update.message.reply_text("💸 Платный разбор. Информация ниже.")
@@ -66,8 +72,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             with open("intro-2.ogg", "rb") as audio:
                 await context.bot.send_audio(chat_id, audio)
         except Exception as e:
-            print(f"[Ошибка аудио платного разбора]: {e}")
-        await update.message.reply_text("связаться со мной лично\n`t.me/Vikram_2027`", parse_mode="Markdown")
+            print(f"[Ошибка intro-2]: {e}")
+        await update.message.reply_text(" ", reply_markup=get_inline_button())
 
     elif "vip" in text:
         await update.message.reply_text("👑 Пакет VIP: смотрите материалы ниже.")
@@ -81,8 +87,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             with open("intro-3.ogg", "rb") as audio:
                 await context.bot.send_audio(chat_id, audio)
         except Exception as e:
-            print(f"[Ошибка аудио VIP]: {e}")
-        await update.message.reply_text("связаться со мной лично\n`t.me/Vikram_2027`", parse_mode="Markdown")
+            print(f"[Ошибка intro-3]: {e}")
+        await update.message.reply_text(" ", reply_markup=get_inline_button())
 
     elif "отзывы" in text or "обо мне" in text:
         await update.message.reply_text("📌 Отзывы и информация:")
@@ -94,7 +100,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         except Exception as e:
             print(f"[Ошибка отзывов]: {e}")
         await update.message.reply_text("🔗 Instagram: https://www.instagram.com/vikram_hd_2027")
-        await update.message.reply_text("связаться со мной лично\n`t.me/Vikram_2027`", parse_mode="Markdown")
+        await update.message.reply_text(" ", reply_markup=get_inline_button())
 
     else:
         await update.message.reply_text("Выберите вариант из меню ниже 👇")
@@ -109,4 +115,4 @@ if __name__ == "__main__":
         print("Бот запущен.")
         app.run_polling()
     except telegram.error.Conflict:
-        print("⚠️ Бот уже запущен где-то ещё. Завершите другой экземпляр.")
+        print("⚠️ Бот уже работает где-то ещё. Остановите второй экземпляр.")
