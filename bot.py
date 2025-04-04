@@ -52,7 +52,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await context.bot.send_audio(chat_id, audio)
         except Exception as e:
             print(f"[Ошибка аудио бесплатного разбора]: {e}")
-        await update.message.reply_text("связаться со мной лично\n`t.me/Vikram_2027`", parse_mode="MarkdownV2")
+        await update.message.reply_text("связаться со мной лично\n`t.me/Vikram_2027`", parse_mode="Markdown")
 
     elif "платный" in text:
         await update.message.reply_text("💸 Платный разбор. Информация ниже.")
@@ -67,7 +67,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await context.bot.send_audio(chat_id, audio)
         except Exception as e:
             print(f"[Ошибка аудио платного разбора]: {e}")
-        await update.message.reply_text("связаться со мной лично\n`t.me/Vikram_2027`", parse_mode="MarkdownV2")
+        await update.message.reply_text("связаться со мной лично\n`t.me/Vikram_2027`", parse_mode="Markdown")
 
     elif "vip" in text:
         await update.message.reply_text("👑 Пакет VIP: смотрите материалы ниже.")
@@ -82,7 +82,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await context.bot.send_audio(chat_id, audio)
         except Exception as e:
             print(f"[Ошибка аудио VIP]: {e}")
-        await update.message.reply_text("связаться со мной лично\n`t.me/Vikram_2027`", parse_mode="MarkdownV2")
+        await update.message.reply_text("связаться со мной лично\n`t.me/Vikram_2027`", parse_mode="Markdown")
 
     elif "отзывы" in text or "обо мне" in text:
         await update.message.reply_text("📌 Отзывы и информация:")
@@ -94,7 +94,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         except Exception as e:
             print(f"[Ошибка отзывов]: {e}")
         await update.message.reply_text("🔗 Instagram: https://www.instagram.com/vikram_hd_2027")
-        await update.message.reply_text("связаться со мной лично\n`t.me/Vikram_2027`", parse_mode="MarkdownV2")
+        await update.message.reply_text("связаться со мной лично\n`t.me/Vikram_2027`", parse_mode="Markdown")
 
     else:
         await update.message.reply_text("Выберите вариант из меню ниже 👇")
