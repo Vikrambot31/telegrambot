@@ -2,10 +2,12 @@ import os
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 from dotenv import load_dotenv
+import telegram.error
 
-# Загрузка переменных окружения
+# Загрузка переменных среды
 load_dotenv()
-TOKEN = os.getenv("TOKEN")  # Убедитесь, что .env содержит строку: TOKEN=ваш_новый_токен
+TOKEN = os.getenv("TOKEN")
+PORT = int(os.environ.get("PORT", 8443))
 
 # Меню кнопок
 keyboard = [
@@ -16,7 +18,7 @@ keyboard = [
 ]
 markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
 
-# Команда /start
+# Обработка команды /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
 
@@ -34,7 +36,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         print(f"[Ошибка] Аудио приветствия: {e}")
 
-# Обработка кнопок
+# Обработка всех кнопок
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     text = update.message.text.lower()
@@ -89,13 +91,4 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await update.message.reply_text("Выберите вариант из меню 👇")
 
-# Основная функция запуска
-def main():
-    app = ApplicationBuilder().token(TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-    print("✅ Бот запущен. Ожидаем пользователей...")
-    app.run_polling()
-
-if __name__ == "__main__":
-    main()
+# Запуск бота (с защитой от двойного
