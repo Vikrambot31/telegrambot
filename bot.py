@@ -1,12 +1,9 @@
-from pathlib import Path
-
-# Финальный код с исправлениями по всем последним замечаниям
-final_bot_code = '''
 from telegram import Update, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 
 TOKEN = "7419809164:AAHofDyitmblhjCszawIJpzdHTmwgANIHrw"
 
+# Главное меню
 keyboard = [
     ["🆓 Бесплатный разбор"],
     ["💸 Платный разбор от 15$"],
@@ -15,33 +12,34 @@ keyboard = [
 ]
 markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
 
-# Кнопки
+# Кнопка формы
 def get_form_button():
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("📝 ЖМИ СЮДА — заполни ФОРМУ", url="https://freehumandesignchart.com/")]
     ])
 
+# Кнопка связи с Викрамом
 def get_contact_button():
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("💬 Написать Викраму лично", url="https://t.me/Vikram_2027")]
     ])
 
+# Обработка команды /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     await update.message.reply_text("Приветствую вас, с вами Викрам!", reply_markup=markup)
-
     try:
         with open("s1.webp", "rb") as sticker:
             await context.bot.send_sticker(chat_id, sticker)
     except Exception as e:
         print(f"[Ошибка стикера]: {e}")
-
     try:
         with open("intro-0.ogg", "rb") as audio:
             await context.bot.send_audio(chat_id, audio)
     except Exception as e:
         print(f"[Ошибка intro-0.ogg]: {e}")
 
+# Обработка кнопок
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     text = update.message.text.lower()
@@ -104,9 +102,11 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             print(f"[Ошибка primer_razbora.ogg]: {e}")
         await update.message.reply_text("👇", reply_markup=get_contact_button())
 
+# Обработка ошибок
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
     print(f"Произошла ошибка: {context.error}")
 
+# Точка входа
 def main():
     app = ApplicationBuilder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
@@ -116,10 +116,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-'''
-
-# Сохраняем в файл
-output_path = Path("/mnt/data/final_corrected_bot.py")
-output_path.write_text(final_bot_code, encoding="utf-8")
-
-output_path
