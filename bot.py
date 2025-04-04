@@ -1,88 +1,99 @@
-import os
-from telegram import Update, ReplyKeyboardMarkup, InputFile, InlineKeyboardMarkup, InlineKeyboardButton
+from telegram import Update, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
-import logging
 
-# Включаем логирование (чтобы видеть ошибки в Railway)
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
-)
+TOKEN = "YOUR_TOKEN_HERE"
 
-# ✅ Используем переменную окружения (установи BOT_TOKEN в Railway)
-TOKEN = os.getenv("BOT_TOKEN") or "7419809164:AAHofDyitmblhjCszawIJpzdHTmwgANIHrw"  # временно вшит
+keyboard = [
+    ["🆓 Бесплатный разбор"],
+    ["💸 Платный разбор от 15$"],
+    ["👑 Пакет VIP от 60$"],
+    ["📌 Обо мне / Отзывы"],
+    ["📞 Связаться со мной"]
+]
+markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
 
-# Главное меню
-main_menu = [["Бесплатный разбор"], ["Платный разбор от 15 $"], ["Пакет ВИП от 60 $"], ["Обо мне и отзывы"], ["Связаться со мной"]]
-
-# Старт
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat_id = update.effective_chat.id
-    try:
-        await context.bot.send_sticker(chat_id=chat_id, sticker=InputFile("s1.webp"))
-        await context.bot.send_audio(chat_id=chat_id, audio=InputFile("intro-0.ogg"))
-    except Exception as e:
-        logging.error(f"Ошибка при отправке приветствия: {e}")
-    await update.message.reply_text(
-        "Приветствую вас! С вами Викрам!",
-        reply_markup=ReplyKeyboardMarkup(main_menu, resize_keyboard=True)
+def get_inline_button():
+    return InlineKeyboardMarkup(
+        [[InlineKeyboardButton("написать Викраму лично", url="https://t.me/Vikram_2027")]]
     )
 
-# Ответы на кнопки
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text = update.message.text.lower()
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
+    await update.message.reply_text("Приветствую вас, с вами Викрам!", reply_markup=markup)
+
+    try:
+        with open("s1.webp", "rb") as sticker:
+            await context.bot.send_sticker(chat_id, sticker)
+    except Exception as e:
+        print(f"[Ошибка стикера]: {e}")
+
+    try:
+        with open("intro-0.ogg", "rb") as audio:
+            await context.bot.send_audio(chat_id, audio)
+    except Exception as e:
+        print(f"[Ошибка intro-0.ogg]: {e}")
+
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_id = update.effective_chat.id
+    text = update.message.text.lower()
 
     if "бесплатный" in text:
-        await update.message.reply_text("Ожидайте инструкцию 👇")
-        await send_files(context, chat_id, ["pic2.png", "pic3.png"], "intro-1.ogg")
+        await update.message.reply_text("Вы выбрали бесплатный разбор. Ожидайте инструкций.")
+        for fname in ["pic1.png", "pic2.png", "pic3.png"]:
+            try:
+                with open(fname, "rb") as img:
+                    await context.bot.send_photo(chat_id, img)
+            except Exception as e:
+                print(f"[Ошибка изображения {fname}]: {e}")
+        try:
+            with open("intro-1.ogg", "rb") as audio:
+                await context.bot.send_audio(chat_id, audio)
+        except Exception as e:
+            print(f"[Ошибка intro-1]: {e}")
 
     elif "платный" in text:
-        await update.message.reply_text("Детали платного разбора 👇")
-        await send_files(context, chat_id, ["pic4.png", "pic4.1.png", "pic5.png"], "intro-2.ogg")
-
-    elif "вип" in text:
-        await update.message.reply_text("Пакет ВИП включает всё 👇")
-        await send_files(context, chat_id, ["pic6.png", "Voprosi.png"], "intro-3.ogg")
-
-    elif "обо мне" in text or "отзывы" in text:
-        await update.message.reply_text("Отзывы обо мне и пример консультации 👇")
+        await update.message.reply_text("💸 Платный разбор. Информация ниже.")
+        for fname in ["pic4.png", "pic4-1.png", "pic5.png"]:
+            try:
+                with open(fname, "rb") as img:
+                    await context.bot.send_photo(chat_id, img)
+            except Exception as e:
+                print(f"[Ошибка изображения {fname}]: {e}")
         try:
-            await context.bot.send_photo(chat_id=chat_id, photo=InputFile("o1.png"))
-            await context.bot.send_audio(chat_id=chat_id, audio=InputFile("primer_razbora.ogg"))
+            with open("intro-2.ogg", "rb") as audio:
+                await context.bot.send_audio(chat_id, audio)
         except Exception as e:
-            logging.error(f"Ошибка при отправке отзывов: {e}")
+            print(f"[Ошибка intro-2]: {e}")
+
+    elif "vip" in text:
+        await update.message.reply_text("👑 Пакет VIP: смотрите материалы ниже.")
+        for fname in ["pic6.png", "pic5.png", "Voprosi.png"]:
+            try:
+                with open(fname, "rb") as img:
+                    await context.bot.send_photo(chat_id, img)
+            except Exception as e:
+                print(f"[Ошибка изображения {fname}]: {e}")
+        try:
+            with open("intro-3.ogg", "rb") as audio:
+                await context.bot.send_audio(chat_id, audio)
+        except Exception as e:
+            print(f"[Ошибка intro-3]: {e}")
+
+    elif "обо мне" in text:
+        await update.message.reply_text("Я Викрам, профессиональный аналитик по Human Design и психолог.")
+        await update.message.reply_text("Отзывы: https://t.me/Vikram_2027")
 
     elif "связаться" in text:
-        # ⛔️ Ссылка без автоформатирования
-        await update.message.reply_text(
-            "t.me/Vikram_2027",
-            disable_web_page_preview=True
-        )
+        await update.message.reply_text("Нажмите кнопку ниже:", reply_markup=get_inline_button())
 
-# Вспомогательная функция
-async def send_files(context, chat_id, images, audio_file):
-    for img in images:
-        try:
-            await context.bot.send_photo(chat_id=chat_id, photo=InputFile(img))
-        except Exception as e:
-            logging.warning(f"Ошибка при отправке изображения {img}: {e}")
-    try:
-        await context.bot.send_audio(chat_id=chat_id, audio=InputFile(audio_file))
-    except Exception as e:
-        logging.warning(f"Ошибка при отправке аудио {audio_file}: {e}")
-    await context.bot.send_message(chat_id=chat_id, text="написать Викраму лично", reply_markup=InlineKeyboardMarkup(
-        [[InlineKeyboardButton("написать Викраму лично", url="https://t.me/Vikram_2027")]]
-    ))
+async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
+    print(f"Произошла ошибка: {context.error}")
 
-# Запуск
 def main():
     app = ApplicationBuilder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-
-    # ✅ Только polling — без webhook, чтобы исключить конфликты
-    print("✅ Бот запущен. Ожидаем команды...")
+    app.add_error_handler(error_handler)
     app.run_polling()
 
 if __name__ == "__main__":
