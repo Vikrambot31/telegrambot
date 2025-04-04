@@ -4,8 +4,8 @@ from telegram.ext import (
     ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 )
 
+# Получаем токен из переменной окружения
 TOKEN = os.getenv("TOKEN")
-PORT = int(os.environ.get("PORT", 8443))
 
 # Главное меню
 main_menu = [
@@ -26,21 +26,21 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         print(f"Ошибка при отправке стикера: {e}")
 
-    # Отправка голосового (в формате .ogg)
+    # Отправка голосового (intro-0.ogg)
     try:
         with open("intro-0.ogg", "rb") as voice:
             await context.bot.send_voice(chat_id=chat_id, voice=voice)
     except Exception as e:
         print(f"Ошибка при отправке голосового: {e}")
 
-    # Приветствие + кнопки
+    # Приветственное сообщение и кнопки
     await context.bot.send_message(
         chat_id=chat_id,
         text="Добрый день! нажмите слово 'разбор' для старта.",
         reply_markup=ReplyKeyboardMarkup(main_menu, resize_keyboard=True)
     )
 
-# Обработка сообщений
+# Обработка всех сообщений
 async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.lower()
 
@@ -56,18 +56,14 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="Пожалуйста, используйте кнопки меню.")
 
-# Запуск бота через Webhook
+# Запуск через polling
 def main():
     app = ApplicationBuilder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler))
 
-    app.run_webhook(
-        listen="0.0.0.0",
-        port=PORT,
-        url_path=TOKEN,
-        webhook_url=f"https://vikrambot.onrender.com/{TOKEN}"
-    )
+    print("Бот запущен через polling.")
+    app.run_polling()
 
 if __name__ == "__main__":
     main()
