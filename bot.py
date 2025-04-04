@@ -11,16 +11,17 @@ keyboard = [
 ]
 markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
 
-def get_inline_buttons(forma=False):
-    buttons = [[InlineKeyboardButton("✉️ Написать Викраму лично", url="https://t.me/Vikram_2027")]]
-    if forma:
-        buttons.insert(0, [InlineKeyboardButton("📝 ЖМИ СЮДА - заполни ФОРМУ", url="https://freehumandesignchart.com/")])
+def get_inline_buttons(include_forma=False):
+    buttons = []
+    if include_forma:
+        buttons.append([InlineKeyboardButton("📝 ЖМИ СЮДА — заполни ФОРМУ", url="https://freehumandesignchart.com/")])
+    buttons.append([InlineKeyboardButton("✉️ Написать Викраму лично", url="https://t.me/Vikram_2027")])
     return InlineKeyboardMarkup(buttons)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     await update.message.reply_text("Приветствую вас, с вами Викрам!", reply_markup=markup)
-
+    
     try:
         with open("s1.webp", "rb") as sticker:
             await context.bot.send_sticker(chat_id, sticker)
@@ -32,8 +33,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await context.bot.send_audio(chat_id, audio)
     except Exception as e:
         print(f"[Ошибка intro-0.ogg]: {e}")
-
-    await update.message.reply_text("👇", reply_markup=get_inline_buttons())
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
@@ -48,11 +47,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             except Exception as e:
                 print(f"[Ошибка изображения {fname}]: {e}")
         try:
-            with open("intro-1.ogg", "rb") as audio:
+            with open("x1.ogg", "rb") as audio:
                 await context.bot.send_audio(chat_id, audio)
         except Exception as e:
-            print(f"[Ошибка intro-1.ogg]: {e}")
-        await update.message.reply_text("👇", reply_markup=get_inline_buttons(forma=True))
+            print(f"[Ошибка x1.ogg]: {e}")
 
     elif "платный" in text:
         await update.message.reply_text("💸 Платный разбор. Информация ниже.")
@@ -67,7 +65,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await context.bot.send_audio(chat_id, audio)
         except Exception as e:
             print(f"[Ошибка x2.ogg]: {e}")
-        await update.message.reply_text("👇", reply_markup=get_inline_buttons())
+        await update.message.reply_text("👇", reply_markup=get_inline_buttons(include_forma=True))
 
     elif "vip" in text:
         await update.message.reply_text("👑 Пакет VIP: смотрите материалы ниже.")
@@ -82,7 +80,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await context.bot.send_audio(chat_id, audio)
         except Exception as e:
             print(f"[Ошибка x3.ogg]: {e}")
-        await update.message.reply_text("👇", reply_markup=get_inline_buttons())
+        await update.message.reply_text("👇", reply_markup=get_inline_buttons(include_forma=True))
 
     elif "обо мне" in text or "отзывы" in text:
         await update.message.reply_text(
@@ -95,7 +93,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await context.bot.send_audio(chat_id, audio)
         except Exception as e:
             print(f"[Ошибка primer_razbora.ogg]: {e}")
-        await update.message.reply_text("👇", reply_markup=get_inline_buttons())
+        await update.message.reply_text("👇", reply_markup=get_inline_buttons(include_forma=True))
 
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
     print(f"Произошла ошибка: {context.error}")
