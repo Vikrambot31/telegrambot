@@ -1,15 +1,13 @@
 import os
 from telegram import Update, ReplyKeyboardMarkup
-from telegram.ext import (
-    ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
-)
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 from dotenv import load_dotenv
 
 # Загрузка переменных окружения
 load_dotenv()
-TOKEN = os.getenv("TOKEN")
+TOKEN = os.getenv("TOKEN")  # Убедитесь, что .env содержит строку: TOKEN=ваш_новый_токен
 
-# Клавиатура с меню
+# Меню кнопок
 keyboard = [
     ["🆓 Бесплатный разбор"],
     ["💸 Платный разбор от 15$"],
@@ -18,91 +16,86 @@ keyboard = [
 ]
 markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
 
-# Обработка /start
+# Команда /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
 
-    # Стикер
     try:
         with open("s1.webp", "rb") as sticker:
-            await context.bot.send_sticker(chat_id=chat_id, sticker=sticker)
+            await context.bot.send_sticker(chat_id, sticker)
     except Exception as e:
-        print("Ошибка при отправке стикера:", e)
+        print(f"[Ошибка] Стикер: {e}")
 
-    # Приветствие и аудио
     await update.message.reply_text("Приветствую вас, с вами Викрам!", reply_markup=markup)
 
     try:
-        with open("intro.ogg", "rb") as audio:
-            await context.bot.send_audio(chat_id=chat_id, audio=audio)
+        with open("intro-0.ogg", "rb") as audio:
+            await context.bot.send_audio(chat_id, audio)
     except Exception as e:
-        print("Ошибка при отправке приветственного аудио:", e)
+        print(f"[Ошибка] Аудио приветствия: {e}")
 
-# Обработка выбора кнопок
+# Обработка кнопок
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text = update.message.text.lower()
     chat_id = update.effective_chat.id
+    text = update.message.text.lower()
 
     if "бесплатный" in text:
-        await update.message.reply_text("⏳ Ожидайте инструкцию…")
+        await update.message.reply_text("Вы выбрали 'бесплатный разбор'. Ожидайте инструкций.")
         try:
-            with open("free1.ogg", "rb") as audio:
-                await context.bot.send_audio(chat_id=chat_id, audio=audio)
-            with open("pic1.png", "rb") as photo:
-                await context.bot.send_photo(chat_id=chat_id, photo=photo)
+            with open("pic1.png", "rb") as img:
+                await context.bot.send_photo(chat_id, img)
+            with open("intro-1.ogg", "rb") as audio:
+                await context.bot.send_audio(chat_id, audio)
         except Exception as e:
-            print("Ошибка при отправке материалов бесплатного разбора:", e)
+            print(f"[Ошибка] Бесплатный разбор: {e}")
 
     elif "платный" in text:
-        await update.message.reply_text("💸 Вы выбрали платный разбор. Смотрите ниже:")
-        for file_name in ["pic4.png", "pic4_1.png", "pic5.png"]:
+        await update.message.reply_text("💸 Платный разбор: Информация ниже.")
+        for fname in ["pic4.png", "pic4-1.png", "pic5.png"]:
             try:
-                with open(file_name, "rb") as photo:
-                    await context.bot.send_photo(chat_id=chat_id, photo=photo)
+                with open(fname, "rb") as img:
+                    await context.bot.send_photo(chat_id, img)
             except Exception as e:
-                print(f"Ошибка при загрузке {file_name}:", e)
+                print(f"[Ошибка] {fname}: {e}")
         try:
-            with open("pay.ogg", "rb") as audio:
-                await context.bot.send_audio(chat_id=chat_id, audio=audio)
+            with open("intro-2.ogg", "rb") as audio:
+                await context.bot.send_audio(chat_id, audio)
         except Exception as e:
-            print("Ошибка при отправке аудио к платному разбору:", e)
+            print(f"[Ошибка] Аудио платного разбора: {e}")
 
     elif "vip" in text:
-        await update.message.reply_text("👑 Добро пожаловать в VIP-пакет:")
-        for file_name in ["pic6.png", "pic5.png"]:
+        await update.message.reply_text("👑 VIP пакет: смотрите материалы.")
+        for fname in ["pic6.png", "pic5.png"]:
             try:
-                with open(file_name, "rb") as photo:
-                    await context.bot.send_photo(chat_id=chat_id, photo=photo)
+                with open(fname, "rb") as img:
+                    await context.bot.send_photo(chat_id, img)
             except Exception as e:
-                print(f"Ошибка при загрузке {file_name}:", e)
+                print(f"[Ошибка] {fname}: {e}")
         try:
-            with open("vip.ogg", "rb") as audio:
-                await context.bot.send_audio(chat_id=chat_id, audio=audio)
+            with open("intro-3.ogg", "rb") as audio:
+                await context.bot.send_audio(chat_id, audio)
         except Exception as e:
-            print("Ошибка при отправке VIP аудио:", e)
+            print(f"[Ошибка] Аудио VIP: {e}")
 
     elif "отзывы" in text or "обо мне" in text:
-        await update.message.reply_text("📌 Отзывы обо мне и мой Instagram:")
+        await update.message.reply_text("📌 Отзывы и информация:")
         try:
-            with open("o1.png", "rb") as photo:
-                await context.bot.send_photo(chat_id=chat_id, photo=photo)
+            with open("o1.png", "rb") as img:
+                await context.bot.send_photo(chat_id, img)
         except Exception as e:
-            print("Ошибка при загрузке o1.png:", e)
-        await update.message.reply_text("🔗 Мой Instagram: https://www.instagram.com/vikram_hd_2027")
+            print(f"[Ошибка] Картинка отзывов: {e}")
+        await update.message.reply_text("🔗 Instagram: https://www.instagram.com/vikram_hd_2027")
 
     else:
-        await update.message.reply_text("Пожалуйста, выберите один из пунктов меню 👇")
+        await update.message.reply_text("Выберите вариант из меню 👇")
 
-# Запуск
+# Основная функция запуска
 def main():
     app = ApplicationBuilder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-    print("✅ Бот запускается…")
+    print("✅ Бот запущен. Ожидаем пользователей...")
     app.run_polling()
 
-# Подстраховка от повторного запуска
 if __name__ == "__main__":
-    import sys
-    print("📌 Этот файл запущен как основной:", sys.argv[0])
     main()
