@@ -1,5 +1,4 @@
 from flask import Flask, render_template, request, redirect
-from urllib.parse import urlencode
 
 app = Flask(__name__)
 
@@ -7,25 +6,19 @@ app = Flask(__name__)
 def index():
     return render_template('index.html')
 
+@app.route('/form')
+def form():
+    return render_template('form.html')
+
 @app.route('/result', methods=['POST'])
 def result():
     name = request.form['name']
-    birthdate = request.form['birthdate']
-    birthtime = request.form['birthtime']
-    birthcity = request.form['birthcity']
-
-    # Формируем ссылку на сервис бодиграфа
-    query_params = urlencode({
-        'name': name,
-        'birthdate': birthdate,
-        'birthtime': birthtime,
-        'birthcity': birthcity
-    })
-
-    link = f"https://app.maiamechanics.com/#/free-chart?{query_params}"
-
-    return render_template('result.html', name=name, birthdate=birthdate, birthtime=birthtime, birthcity=birthcity, link=link)
+    birth_date = request.form['birth_date']
+    birth_time = request.form['birth_time']
+    birth_place = request.form['birth_place']
+    # Можно сохранять или обрабатывать дальше
+    return render_template('result.html', name=name, birth_date=birth_date, birth_time=birth_time, birth_place=birth_place)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
 
