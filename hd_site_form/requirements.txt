@@ -6,8 +6,8 @@ litellm
 openai
 
 
-Flask==2.2.5
-requests
+Flask
+
 
 
 
