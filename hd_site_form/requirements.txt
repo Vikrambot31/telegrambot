@@ -4,12 +4,11 @@ cryptography
 scikit-learn
 litellm
 openai
-python-telegram-bot==20.3
-python-dotenv
 
 
-Flask==2.2.2
-requests==2.31.0
+Flask==2.2.5
+requests
+
 
 
 
