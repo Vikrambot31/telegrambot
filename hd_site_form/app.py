@@ -15,9 +15,10 @@ def result():
     name = request.form['name']
     birth_date = request.form['birth_date']
     birth_time = request.form['birth_time']
-    city = request.form['city']  # 🛠 исправлено
+    city = request.form['city']
     return render_template('result.html', name=name, birth_date=birth_date, birth_time=birth_time, city=city)
 
 if __name__ == '__main__':
     app.run(debug=True)
+
 
