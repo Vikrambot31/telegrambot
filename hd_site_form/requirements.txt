@@ -6,7 +6,9 @@ litellm
 openai
 
 
-Flask
+Flask==2.2.5
+werkzeug==2.0.3
+
 
 
 
