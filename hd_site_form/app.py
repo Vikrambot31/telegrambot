@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request
 
 app = Flask(__name__)
 
@@ -15,10 +15,9 @@ def result():
     name = request.form['name']
     birth_date = request.form['birth_date']
     birth_time = request.form['birth_time']
-    birth_place = request.form['birth_place']
-    # Можно сохранять или обрабатывать дальше
-    return render_template('result.html', name=name, birth_date=birth_date, birth_time=birth_time, birth_place=birth_place)
+    city = request.form['city']  # 🛠 исправлено
+    return render_template('result.html', name=name, birth_date=birth_date, birth_time=birth_time, city=city)
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
 
