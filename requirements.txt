@@ -8,7 +8,7 @@ python-telegram-bot==20.3
 python-dotenv
 
 
-Flask==2.2.2
+Flask>=2.0.0,<3.0.0
 requests==2.31.0
 
 
