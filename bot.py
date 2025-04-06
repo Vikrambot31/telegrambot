@@ -96,10 +96,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "Ниже — примеры реальных сессий:"
         )
         try:
-            with open("primer_razbora0.ogg", "rb") as audio:
+            with open("p1.ogg", "rb") as audio:
                 await context.bot.send_audio(chat_id, audio)
         except Exception as e:
-            print(f"[Ошибка primer_razbora0.ogg]: {e}")
+            print(f"[Ошибка p1.ogg]: {e}")
         try:
             with open("primer_razbora.ogg", "rb") as audio:
                 await context.bot.send_audio(chat_id, audio)
