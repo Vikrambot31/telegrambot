@@ -93,8 +93,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(
             "Здесь вы можете прочитать про отзывы и систему — мой Instagram:\n"
             "https://www.instagram.com/vikram_hd_2027\n"
-            "Ниже — пример реальной сессии:"
+            "Ниже — примеры реальных сессий:"
         )
+        try:
+            with open("primer_razbora0.ogg", "rb") as audio:
+                await context.bot.send_audio(chat_id, audio)
+        except Exception as e:
+            print(f"[Ошибка primer_razbora0.ogg]: {e}")
         try:
             with open("primer_razbora.ogg", "rb") as audio:
                 await context.bot.send_audio(chat_id, audio)
