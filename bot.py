@@ -1,9 +1,9 @@
 from telegram import Update, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, CallbackQueryHandler, ContextTypes, filters
+from gen_keys import get_gate_description
 
 TOKEN = "7419809164:AAHofDyitmblhjCszawIJpzdHTmwgANIHrw"
 
-# Главное меню
 keyboard = [
     ["🆓 Бесплатный разбор"],
     ["💸 Платный разбор от 15$"],
@@ -12,37 +12,51 @@ keyboard = [
 ]
 markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
 
-# Кнопка формы
-def get_form_button():
+# Храним ID, которые уже получали доступ
+used_ids = set()
+
+def get_form_buttons():
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("📝 ЖМИ СЮДА — заполни ФОРМУ", url="https://freehumandesignchart.com/")]
+        [InlineKeyboardButton("📝 ЖМИ СЮДА — заполни ФОРМУ", url="https://freehumandesignchart.com/")],
+        [InlineKeyboardButton("🧠 Расшифровать самому", callback_data="decode_self")]
     ])
 
-# Кнопка связи с Викрамом
 def get_contact_button():
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("💬 Написать Викраму лично", url="https://t.me/Vikram_2027")]
     ])
 
-# Обработка команды /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     await update.message.reply_text("Приветствую вас, с вами Викрам!", reply_markup=markup)
     try:
         with open("s1.webp", "rb") as sticker:
             await context.bot.send_sticker(chat_id, sticker)
-    except Exception as e:
-        print(f"[Ошибка стикера]: {e}")
+    except: pass
     try:
         with open("intro-0.ogg", "rb") as audio:
             await context.bot.send_audio(chat_id, audio)
-    except Exception as e:
-        print(f"[Ошибка intro-0.ogg]: {e}")
+    except: pass
 
-# Обработка кнопок
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
+    user_id = update.effective_user.id
     text = update.message.text.lower()
+
+    # Обработка ввода ворот
+    if context.user_data.get("awaiting_gates"):
+        context.user_data["awaiting_gates"] = False
+        if user_id in used_ids:
+            await update.message.reply_text("Вы уже использовали возможность бесплатной расшифровки.")
+            return
+        try:
+            gates = [int(x.strip()) for x in text.split(",")][:5]
+            result = get_gate_description(gates)
+            used_ids.add(user_id)
+            await update.message.reply_text(result)
+        except:
+            await update.message.reply_text("Ошибка. Введите до 5 чисел через запятую, например: 10, 34, 57, 20, 16")
+        return
 
     if "бесплатный" in text:
         await update.message.reply_text("Вы выбрали бесплатный разбор.")
@@ -50,14 +64,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             try:
                 with open(fname, "rb") as img:
                     await context.bot.send_photo(chat_id, img)
-            except Exception as e:
-                print(f"[Ошибка изображения {fname}]: {e}")
+            except: pass
         try:
             with open("x1.ogg", "rb") as audio:
                 await context.bot.send_audio(chat_id, audio)
-        except Exception as e:
-            print(f"[Ошибка x1.ogg]: {e}")
-        await update.message.reply_text("👇", reply_markup=get_form_button())
+        except: pass
+        await update.message.reply_text("👇", reply_markup=get_form_buttons())
 
     elif "платный" in text:
         await update.message.reply_text("💸 Платный разбор. Информация ниже.")
@@ -65,13 +77,11 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             try:
                 with open(fname, "rb") as img:
                     await context.bot.send_photo(chat_id, img)
-            except Exception as e:
-                print(f"[Ошибка изображения {fname}]: {e}")
+            except: pass
         try:
             with open("x2.ogg", "rb") as audio:
                 await context.bot.send_audio(chat_id, audio)
-        except Exception as e:
-            print(f"[Ошибка x2.ogg]: {e}")
+        except: pass
         await update.message.reply_text("👇", reply_markup=get_contact_button())
 
     elif "vip" in text:
@@ -80,13 +90,11 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             try:
                 with open(fname, "rb") as img:
                     await context.bot.send_photo(chat_id, img)
-            except Exception as e:
-                print(f"[Ошибка изображения {fname}]: {e}")
+            except: pass
         try:
             with open("x3.ogg", "rb") as audio:
                 await context.bot.send_audio(chat_id, audio)
-        except Exception as e:
-            print(f"[Ошибка x3.ogg]: {e}")
+        except: pass
         await update.message.reply_text("👇", reply_markup=get_contact_button())
 
     elif "обо мне" in text or "отзывы" in text:
@@ -95,26 +103,31 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "https://www.instagram.com/vikram_hd_2027\n"
             "Ниже — примеры реальных сессий:"
         )
-        try:
-            with open("p1.ogg", "rb") as audio:
-                await context.bot.send_audio(chat_id, audio)
-        except Exception as e:
-            print(f"[Ошибка p1.ogg]: {e}")
-        try:
-            with open("primer_razbora.ogg", "rb") as audio:
-                await context.bot.send_audio(chat_id, audio)
-        except Exception as e:
-            print(f"[Ошибка primer_razbora.ogg]: {e}")
+        for fname in ["p1.ogg", "primer_razbora.ogg"]:
+            try:
+                with open(fname, "rb") as audio:
+                    await context.bot.send_audio(chat_id, audio)
+            except: pass
         await update.message.reply_text("👇", reply_markup=get_contact_button())
 
-# Обработка ошибок
+async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    if query.data == "decode_self":
+        user_id = query.from_user.id
+        if user_id in used_ids:
+            await query.message.reply_text("Вы уже использовали возможность бесплатной расшифровки.")
+        else:
+            context.user_data["awaiting_gates"] = True
+            await query.message.reply_text("Введите до 5 ворот через запятую, например: 10, 34, 57, 20, 16")
+
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
     print(f"Произошла ошибка: {context.error}")
 
-# Точка входа
 def main():
     app = ApplicationBuilder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
+    app.add_handler(CallbackQueryHandler(handle_callback))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     app.add_error_handler(error_handler)
     app.run_polling()
