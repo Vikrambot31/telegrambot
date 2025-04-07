@@ -30,6 +30,20 @@ def get_contact_button():
 
 # /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Отправка стикера
+    try:
+        with open("sticker.webp", "rb") as sticker:
+            await context.bot.send_sticker(update.effective_chat.id, sticker)
+    except:
+        pass
+
+    # Отправка первого аудиофайла
+    try:
+        with open("p1.ogg", "rb") as audio:
+            await context.bot.send_audio(update.effective_chat.id, audio)
+    except:
+        pass
+
     await update.message.reply_text("Выберите интересующий вас пункт меню:", reply_markup=menu_markup)
 
 # Обработка кнопки
@@ -39,7 +53,7 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if query.data == "decode_self":
         context.user_data["awaiting_gates"] = True
-        await query.message.reply_text("(Функция в разработке) Введите до 5 ворот (из своего рисунка ТОЛЬКО!) через запятую, например: 10, 34, 57, 20, 16")
+        await query.message.reply_text("(Функция в разработке)")
 
 # Обработка сообщений
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
