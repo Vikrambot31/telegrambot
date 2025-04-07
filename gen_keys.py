@@ -74,11 +74,11 @@ def get_gate_description(gate_numbers):
         gate = gate_data.get(num)
         if gate:
             desc = (
-                f"\n📖 Ворота {num}\n"
-                f"- Дар: {gate['Дар']}\n"
-                f"- Тень: {gate['Тень']}\n"
-                f"- Описание тени: {gate['Описание']}"
-            )
+    f"- Дар: {gate['Дар']}\n"
+    f"- Тень: {gate['Тень']}\n"
+    f"- Описание тени: {gate['Описание']}"
+)
+
             descriptions.append(desc)
         else:
             descriptions.append(f"\n⚠️ Ворота {num} не найдены в базе.")
