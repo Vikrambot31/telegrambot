@@ -140,12 +140,17 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "https://www.instagram.com/vikram_hd_2027\n"
             "Ниже — примеры реальных сессий:"
         )
-        for fname in ["primer_razbora.ogg"]:
-            try:
-                with open(fname, "rb") as audio:
-                    await context.bot.send_audio(chat_id, audio)
-            except:
-                pass
+
+        # Пауза перед отправкой документа
+        await asyncio.sleep(1)
+
+        # Отправка PDF файла "Razbor_na_God.pdf"
+        try:
+            with open("Razbor_na_God.pdf", "rb") as pdf:
+                await context.bot.send_document(chat_id, pdf)
+        except:
+            pass
+
         await update.message.reply_text("👇", reply_markup=get_contact_button())
 
 # Обработка ошибок
