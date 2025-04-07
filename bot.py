@@ -1,22 +1,24 @@
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     user_id = update.effective_user.id
-    text = update.message.text.lower()
+    text = update.message.text.lower().strip()
 
-    # Обработка ввода ворот
+    # 💡 Попытка распознать как ворота — если бот этого ждал
     if context.user_data.get("awaiting_gates"):
-        context.user_data["awaiting_gates"] = False
-        if user_id in used_ids:
-            await update.message.reply_text("Вы уже использовали возможность бесплатной расшифровки.")
-            return
         try:
             gates = [int(x.strip()) for x in text.split(",")][:5]
+            if not gates:
+                raise ValueError("Нет чисел")
             result = get_gate_description(gates)
             used_ids.add(user_id)
+            context.user_data["awaiting_gates"] = False
             await update.message.reply_text(result)
+            return
         except:
-            await update.message.reply_text("Ошибка. Введите до 5 чисел через запятую, например: 10, 34, 57, 20, 16")
-        return
+            # если не числа — сброс ожидания и переход к обычному меню
+            context.user_data["awaiting_gates"] = False
+
+    # --- Главное меню ---
 
     if "бесплатный" in text:
         await update.message.reply_text("Вы выбрали бесплатный разбор.")
