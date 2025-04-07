@@ -39,7 +39,7 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if query.data == "decode_self":
         context.user_data["awaiting_gates"] = True
-        await query.message.reply_text("Введите до 5 ворот через запятую, например: 10, 34, 57, 20, 16")
+        await query.message.reply_text("(Функция в разработке) Введите до 5 ворот (из своего рисунка ТОЛЬКО!) через запятую, например: 10, 34, 57, 20, 16")
 
 # Обработка сообщений
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -63,33 +63,37 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if "бесплатный" in text:
         await update.message.reply_text("Вы выбрали бесплатный разбор.")
 
-        # Отправка картинок
+        # Отправляем картинки с паузами
         for fname in ["pic1.png", "pic2.png", "pic3.png"]:
             try:
                 with open(fname, "rb") as img:
                     await context.bot.send_photo(chat_id, img)
+                    await asyncio.sleep(0.5)  # Пауза между картинками
             except:
                 pass
 
-        # Отправка pic7.png
+        # Отправляем pic7.png
         try:
             with open("pic7.png", "rb") as img:
                 await context.bot.send_photo(chat_id, img)
+                await asyncio.sleep(0.5)  # Пауза после pic7.png
         except:
             pass
 
-        # Отправка аудиофайла
+        # Пауза перед аудио
+        await asyncio.sleep(1)  # Пауза перед аудиофайлом
+
+        # Отправляем аудиофайл
         try:
             with open("x1.ogg", "rb") as audio:
                 await context.bot.send_audio(chat_id, audio)
         except:
             pass
 
-        # Пауза, чтобы Telegram успел отобразить медиа
-        import asyncio
+        # Пауза перед кнопками
         await asyncio.sleep(1)
 
-        # Отправка кнопок
+        # Отправляем кнопки
         await update.message.reply_text(
             "👇 Ниже вы можете выбрать действие:",
             reply_markup=get_form_buttons()
@@ -102,6 +106,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             try:
                 with open(fname, "rb") as img:
                     await context.bot.send_photo(chat_id, img)
+                    await asyncio.sleep(0.5)  # Пауза между картинками
             except:
                 pass
         try:
@@ -118,6 +123,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             try:
                 with open(fname, "rb") as img:
                     await context.bot.send_photo(chat_id, img)
+                    await asyncio.sleep(0.5)  # Пауза между картинками
             except:
                 pass
         try:
