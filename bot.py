@@ -6,8 +6,8 @@ import asyncio
 TOKEN = "7419809164:AAHofDyitmblhjCszawIJpzdHTmwgANIHrw"
 
 used_ids = set()
-active_chats = set()
 
+# Главное меню
 keyboard = [
     ["🆓 Бесплатный разбор"],
     ["💸 Платный разбор от 15$"],
@@ -28,52 +28,40 @@ def get_contact_button():
         [InlineKeyboardButton("📲 Написать в Telegram", url="https://t.me/Vikram_2027")]
     ])
 
-# 🔁 Очистка чата каждые 15 минут
-async def clear_chat_history(context: ContextTypes.DEFAULT_TYPE):
-    for chat_id in list(active_chats):
-        try:
-            await context.bot.send_message(chat_id, "🧹 Очистка: история взаимодействия сброшена.")
-        except:
-            pass
-    active_chats.clear()
-
-# 🚀 /start
+# /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat_id = update.effective_chat.id
-    active_chats.add(chat_id)
-
     # Отправка стикера
     try:
-        with open("s1.webp", "rb") as sticker:
-            await context.bot.send_sticker(chat_id, sticker)
+        with open("sticker.webp", "rb") as sticker:
+            await context.bot.send_sticker(update.effective_chat.id, sticker)
     except:
         pass
 
-    # Отправка приветственного аудио
+    # Отправка первого аудиофайла
     try:
-        with open("intro-0.ogg", "rb") as audio:
-            await context.bot.send_audio(chat_id, audio)
+        with open("p1.ogg", "rb") as audio:
+            await context.bot.send_audio(update.effective_chat.id, audio)
     except:
         pass
 
     await update.message.reply_text("Выберите интересующий вас пункт меню:", reply_markup=menu_markup)
 
-# 🔘 Обработка inline-кнопок
+# Обработка кнопки
 async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
     if query.data == "decode_self":
         context.user_data["awaiting_gates"] = True
-        await query.message.reply_text("Введите до 5 ворот через запятую, например: 10, 34, 57, 20, 16")
+        await query.message.reply_text("(Функция в разработке)")
 
-# 💬 Обработка сообщений
+# Обработка сообщений
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     user_id = update.effective_user.id
     text = update.message.text.lower()
-    active_chats.add(chat_id)
 
+    # Обработка ввода ворот
     if context.user_data.get("awaiting_gates"):
         try:
             gates = [int(x.strip()) for x in text.split(",")][:5]
@@ -85,46 +73,54 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         except:
             context.user_data["awaiting_gates"] = False
 
+    # Если выбран "бесплатный разбор"
     if "бесплатный" in text:
         await update.message.reply_text("Вы выбрали бесплатный разбор.")
 
+        # Отправляем картинки с паузами
         for fname in ["pic1.png", "pic2.png", "pic3.png"]:
             try:
                 with open(fname, "rb") as img:
                     await context.bot.send_photo(chat_id, img)
-                    await asyncio.sleep(0.5)
+                    await asyncio.sleep(0.5)  # Пауза между картинками
             except:
                 pass
 
+        # Отправляем pic7.png
         try:
             with open("pic7.png", "rb") as img:
                 await context.bot.send_photo(chat_id, img)
-                await asyncio.sleep(0.5)
-            except:
-                pass
+                await asyncio.sleep(0.5)  # Пауза после pic7.png
+        except:
+            pass
 
-        await asyncio.sleep(1)
+        # Пауза перед аудио
+        await asyncio.sleep(1)  # Пауза перед аудиофайлом
 
+        # Отправляем аудиофайл
         try:
             with open("x1.ogg", "rb") as audio:
                 await context.bot.send_audio(chat_id, audio)
         except:
             pass
 
+        # Пауза перед кнопками
         await asyncio.sleep(1)
 
+        # Отправляем кнопки
         await update.message.reply_text(
             "👇 Ниже вы можете выбрать действие:",
             reply_markup=get_form_buttons()
         )
 
+    # Если выбран "платный разбор"
     elif "платный" in text:
         await update.message.reply_text("💸 Платный разбор. Информация ниже.")
         for fname in ["pic4.png", "pic4-1.png", "pic5.png"]:
             try:
                 with open(fname, "rb") as img:
                     await context.bot.send_photo(chat_id, img)
-                    await asyncio.sleep(0.5)
+                    await asyncio.sleep(0.5)  # Пауза между картинками
             except:
                 pass
         try:
@@ -134,13 +130,14 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             pass
         await update.message.reply_text("👇", reply_markup=get_contact_button())
 
+    # Если выбран "VIP"
     elif "vip" in text:
         await update.message.reply_text("👑 Пакет VIP: смотрите материалы ниже.")
         for fname in ["pic6.png", "pic5.png", "Voprosi.png"]:
             try:
                 with open(fname, "rb") as img:
                     await context.bot.send_photo(chat_id, img)
-                    await asyncio.sleep(0.5)
+                    await asyncio.sleep(0.5)  # Пауза между картинками
             except:
                 pass
         try:
@@ -150,6 +147,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             pass
         await update.message.reply_text("👇", reply_markup=get_contact_button())
 
+    # Если "Обо мне" или "Отзывы"
     elif "обо мне" in text or "отзывы" in text:
         await update.message.reply_text(
             "Здесь вы можете прочитать про отзывы и систему — мой Instagram:\n"
@@ -157,8 +155,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "Ниже — примеры реальных сессий:"
         )
 
+        # Пауза перед отправкой документа
         await asyncio.sleep(1)
 
+        # Отправка PDF файла "Razbor_na_God.pdf"
         try:
             with open("Razbor_na_God.pdf", "rb") as pdf:
                 await context.bot.send_document(chat_id, pdf)
@@ -167,17 +167,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         await update.message.reply_text("👇", reply_markup=get_contact_button())
 
-# ⚠️ Обработка ошибок
+# Обработка ошибок
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
     print(f"Произошла ошибка: {context.error}")
 
-# ▶️ Запуск бота
+# Запуск бота
 def main():
     app = ApplicationBuilder().token(TOKEN).build()
-
-    # Планировщик очистки каждые 15 минут
-    app.job_queue.run_repeating(clear_chat_history, interval=900, first=900)
-
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(handle_callback))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
