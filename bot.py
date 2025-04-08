@@ -1,19 +1,17 @@
+import os
+from dotenv import load_dotenv
+
 from telegram import Update, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, CallbackQueryHandler, filters
 from gen_keys import get_gate_description
 import asyncio
 
-import os
-from dotenv import load_dotenv
-
+# Загружаем переменные окружения
 load_dotenv()
 TOKEN = os.getenv("BOT_TOKEN")
-print("Загруженный токен:", TOKEN)
-
 
 used_ids = set()
 
-# Главное меню
 keyboard = [
     ["🆓 Бесплатный разбор"],
     ["💸 Платный разбор от 15$"],
@@ -34,18 +32,15 @@ def get_contact_button():
         [InlineKeyboardButton("📲 Написать в Telegram", url="https://t.me/Vikram_2027")]
     ])
 
-# /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
 
-    # Отправка стикера
     try:
         with open("s1.webp", "rb") as sticker:
             await context.bot.send_sticker(chat_id, sticker)
     except Exception as e:
         print("Ошибка при отправке стикера:", e)
 
-    # Отправка первого аудиофайла
     try:
         with open("intro-0.ogg", "rb") as audio:
             await context.bot.send_audio(chat_id, audio)
@@ -54,7 +49,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text("Выберите интересующий вас пункт меню:", reply_markup=menu_markup)
 
-# Обработка inline-кнопки
 async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -62,13 +56,11 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if query.data == "decode_self":
         await query.message.reply_text("Пока что функция в разработке")
 
-# Обработка сообщений
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     user_id = update.effective_user.id
     text = update.message.text.lower()
 
-    # Обработка ворот (если бы они были активны)
     if context.user_data.get("awaiting_gates"):
         try:
             gates = [int(x.strip()) for x in text.split(",")][:5]
@@ -147,14 +139,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         await asyncio.sleep(1)
 
-        # Отправка PDF файла "Razbor_na_God.pdf"
         try:
             with open("Razbor_na_God.pdf", "rb") as pdf:
                 await context.bot.send_document(chat_id, pdf)
         except:
             pass
 
-        # Отправка нового PDF-файла primer_prognoz2.pdf
         try:
             with open("primer_prognoz2.pdf", "rb") as pdf:
                 await context.bot.send_document(chat_id, pdf)
@@ -163,11 +153,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         await update.message.reply_text("👇", reply_markup=get_contact_button())
 
-# Обработка ошибок
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
     print(f"Произошла ошибка: {context.error}")
 
-# Запуск бота
 def main():
     app = ApplicationBuilder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
