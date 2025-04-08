@@ -3,7 +3,12 @@ from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, Con
 from gen_keys import get_gate_description
 import asyncio
 
-TOKEN = "7419809164:AAHofDyitmblhjCszawIJpzdHTmwgANIHrw"
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+TOKEN = os.getenv("BOT_TOKEN")
+
 
 used_ids = set()
 
