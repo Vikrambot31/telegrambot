@@ -4,21 +4,19 @@ import logging
 from dotenv import load_dotenv
 
 from telegram import (
-    Update, ReplyKeyboardMarkup, InlineKeyboardMarkup, InlineKeyboardButton, InputFile
+    Update, ReplyKeyboardMarkup, InlineKeyboardMarkup, InlineKeyboardButton
 )
 from telegram.ext import (
-    Application, CommandHandler, MessageHandler,
-    ContextTypes, CallbackQueryHandler, filters
+    Application, CommandHandler, MessageHandler, CallbackQueryHandler,
+    ContextTypes, filters, JobQueue
 )
-
 from gen_keys import get_gate_description
 
-# Загрузка токена и настройка логов
+# Загрузка токена
 load_dotenv()
 TOKEN = os.getenv("BOT_TOKEN")
 logging.basicConfig(filename='bot.log', level=logging.INFO)
 
-# Только авторизованные пользователи
 ALLOWED_IDS = [446393818]
 
 keyboard = [
@@ -60,7 +58,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id not in ALLOWED_IDS:
         return
-
     query = update.callback_query
     await query.answer()
 
@@ -79,7 +76,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.message.text.startswith("/"):
         return
 
-    # Анти-реклама фильтр
     if "speeeedvpnbot" in text or "http://" in text:
         await context.bot.send_message(chat_id, "⚠️ Обнаружена подозрительная активность. Завершаю.")
         return
@@ -107,6 +103,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if os.path.exists("x2.ogg"):
             with open("x2.ogg", "rb") as audio:
                 await context.bot.send_audio(chat_id, audio)
+
         await update.message.reply_text("👇", reply_markup=get_contact_button())
 
     elif "vip" in text:
@@ -119,14 +116,11 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if os.path.exists("x3.ogg"):
             with open("x3.ogg", "rb") as audio:
                 await context.bot.send_audio(chat_id, audio)
+
         await update.message.reply_text("👇", reply_markup=get_contact_button())
 
     elif "обо мне" in text or "отзывы" in text:
-        await update.message.reply_text(
-            "Здесь вы можете прочитать про отзывы и систему — мой Instagram:\n"
-            "https://www.instagram.com/vikram_hd_2027\n"
-            "Ниже — примеры реальных сессий:"
-        )
+        await update.message.reply_text("Здесь вы можете прочитать про отзывы и систему — мой Instagram:\nhttps://www.instagram.com/vikram_hd_2027\nНиже — примеры реальных сессий:")
         for fname in ["Razbor_na_God.pdf", "primer_prognoz2.pdf"]:
             if os.path.exists(fname):
                 with open(fname, "rb") as doc:
@@ -137,21 +131,19 @@ async def clear_chat_history(context: ContextTypes.DEFAULT_TYPE):
     for chat_id in ALLOWED_IDS:
         try:
             await context.bot.send_message(chat_id, "🧹 Автоочистка истории чата...")
-        except:
-            pass
+        except Exception as e:
+            logging.warning(f"Ошибка при автоочистке: {e}")
 
-async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
     logging.error(f"Произошла ошибка: {context.error}")
 
 def main():
-    app = Application.builder().token(TOKEN).build()
+    app = Application.builder().token(TOKEN).post_init(lambda app: app.job_queue.run_repeating(clear_chat_history, interval=900, first=10)).build()
+
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(handle_callback))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     app.add_error_handler(error_handler)
-
-    # Очистка чата каждые 15 минут
-    app.job_queue.run_repeating(clear_chat_history, interval=900, first=10)
 
     app.run_polling()
 
