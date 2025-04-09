@@ -1,122 +1,142 @@
-from telegram.ext import (
-    ApplicationBuilder, ContextTypes, CommandHandler,
-    CallbackQueryHandler, MessageHandler, filters
-)
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
-from cryptography.fernet import Fernet
-from dotenv import load_dotenv
+from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
 import os
-import logging
+from dotenv import load_dotenv
+import asyncio
 
-load_dotenv()  # Загружаем переменные окружения из .env файла
-secret_key = os.getenv("FERNET_KEY")  # Получаем ключ из переменной окружения
-fernet = Fernet(secret_key)  # Инициализируем объект Fernet с этим ключом
-
-# ✅ Расшифровка .env.enc -> .env
-if os.path.exists(".env.enc"):
-    with open(".env.enc", "rb") as enc_file:
-        decrypted = fernet.decrypt(enc_file.read())
-    with open(".env", "wb") as dec_file:
-        dec_file.write(decrypted)
-
-# ✅ Загрузка переменных окружения
+# Загружаем переменные окружения из .env
 load_dotenv()
 TOKEN = os.getenv("BOT_TOKEN")
 
-# ✅ ID разрешённых пользователей
-ALLOWED_IDS = [446393818]
-BLACKLIST = set()
+# Настройка меню
+keyboard = [
+    ["🆓 Бесплатный разбор"],
+    ["💸 Платный разбор от 15$"],
+    ["👑 Пакет VIP от 60$"],
+    ["📜 Обо мне / Отзывы"]
+]
+menu_markup = InlineKeyboardMarkup(keyboard)
 
-# ✅ Логирование
-logging.basicConfig(filename='bot.log', level=logging.INFO)
-
-# 🔍 Проверка на вредоносные фразы
-def is_suspicious(text: str) -> bool:
-    return any(word in text.lower() for word in ["http://", "https://", "vpn", "bot", "admin", "SpeeeedVPNbot"])
-
-# 🧹 Автоочистка
-async def clear_chat_history(context: ContextTypes.DEFAULT_TYPE):
-    for chat_id in ALLOWED_IDS:
-        try:
-            await context.bot.send_message(chat_id, "🧹 Автоочистка истории чата...")
-        except Exception as e:
-            logging.warning(f"[ОЧИСТКА] Ошибка: {e}")
-
-# ▶ Главное меню
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user = update.effective_user
-    if not user or user.id not in ALLOWED_IDS or user.id in BLACKLIST:
-        return
-
-    logging.info(f"User {user.id} вызвал /start")
-
-    keyboard = [
-        [InlineKeyboardButton("🆓 Бесплатный разбор", callback_data="free")],
-        [InlineKeyboardButton("🐝 Платный разбор от 17$", callback_data="paid")],
-        [InlineKeyboardButton("👑 Пакет VIP от 60$", callback_data="vip")],
-        [InlineKeyboardButton("📜 Обо мне / Отзывы", callback_data="about")],
+def get_form_buttons():
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton("📝 ЖМИ СЮДА — заполни ФОРМУ", url="https://freehumandesignchart.com/")],
         [InlineKeyboardButton("🔄 Обновить страницу", callback_data="refresh")]
-    ]
+    ])
 
-    if os.path.exists("s1.webp"):
-        try:
-            with open("s1.webp", "rb") as sticker:
-                await context.bot.send_sticker(chat_id=user.id, sticker=sticker)
-        except Exception as e:
-            logging.error(f"[СТИКЕР] Ошибка: {e}")
+def get_contact_button():
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton("📲 Написать в Telegram", url="https://t.me/Vikram_2027")],
+        [InlineKeyboardButton("🔄 Обновить страницу", callback_data="refresh")]
+    ])
 
-    await context.bot.send_message(
-        chat_id=user.id,
-        text="👇 Ниже вы можете выбрать действие:",
-        reply_markup=InlineKeyboardMarkup(keyboard)
-    )
+# Команда start
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_id = update.effective_chat.id
+    try:
+        # Отправляем стикер
+        with open("s1.webp", "rb") as sticker:
+            await context.bot.send_sticker(chat_id, sticker)
+    except:
+        pass
 
-# 🔘 Обработка кнопок
-async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        # Отправляем аудио
+        with open("intro-0.ogg", "rb") as audio:
+            await context.bot.send_audio(chat_id, audio)
+    except:
+        pass
+
+    # Отправляем главное меню
+    await update.message.reply_text("👇 Ниже вы можете выбрать действие:", reply_markup=menu_markup)
+
+# Обработка кнопок
+async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
-    user = query.from_user
-    if not user or user.id not in ALLOWED_IDS or user.id in BLACKLIST:
-        return
-
     if query.data == "refresh":
-        return await start(update, context)
+        chat_id = update.effective_chat.id
+        await context.bot.send_message(chat_id, "🔄 Обновление...")
+        await start(update, context)
 
-    await context.bot.send_message(chat_id=user.id, text=f"Вы выбрали: {query.data}")
+# Обработка сообщений
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_id = update.effective_chat.id
+    text = update.message.text.lower()
 
-# 💬 Обработка текстовых сообщений
-async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user = update.effective_user
-    text = update.message.text
+    if "бесплатный" in text:
+        await update.message.reply_text("Вы выбрали бесплатный разбор.")
+        for fname in ["pic1.png", "pic2.png", "pic3.png"]:
+            try:
+                with open(fname, "rb") as img:
+                    await context.bot.send_photo(chat_id, img)
+                    await asyncio.sleep(0.5)
+            except:
+                pass
+        try:
+            with open("x1.ogg", "rb") as audio:
+                await context.bot.send_audio(chat_id, audio)
+        except:
+            pass
+        await update.message.reply_text("👇 Ниже вы можете выбрать действие:", reply_markup=get_form_buttons())
 
-    if not user or user.id not in ALLOWED_IDS or user.id in BLACKLIST:
-        return
+    elif "платный" in text:
+        await update.message.reply_text("💸 Платный разбор. Информация ниже.")
+        for fname in ["pic4.png", "pic4-1.png", "pic5.png"]:
+            try:
+                with open(fname, "rb") as img:
+                    await context.bot.send_photo(chat_id, img)
+                    await asyncio.sleep(0.5)
+            except:
+                pass
+        try:
+            with open("x2.ogg", "rb") as audio:
+                await context.bot.send_audio(chat_id, audio)
+        except:
+            pass
+        await update.message.reply_text("👇", reply_markup=get_contact_button())
 
-    if text.startswith("/"):
-        return
+    elif "vip" in text:
+        await update.message.reply_text("👑 Пакет VIP: смотрите материалы ниже.")
+        for fname in ["pic6.png", "pic5.png", "Voprosi.png"]:
+            try:
+                with open(fname, "rb") as img:
+                    await context.bot.send_photo(chat_id, img)
+                    await asyncio.sleep(0.5)
+            except:
+                pass
+        try:
+            with open("x3.ogg", "rb") as audio:
+                await context.bot.send_audio(chat_id, audio)
+        except:
+            pass
+        await update.message.reply_text("👇", reply_markup=get_contact_button())
 
-    if is_suspicious(text):
-        await context.bot.send_message(chat_id=user.id, text="⚠️ Обнаружена подозрительная активность. Вы занесены в чёрный список.")
-        BLACKLIST.add(user.id)
-        logging.warning(f"User {user.id} добавлен в BLACKLIST: {text}")
-        return
+    elif "обо мне" in text or "отзывы" in text:
+        await update.message.reply_text(
+            "Здесь вы можете прочитать про отзывы и систему — мой Instagram:\n"
+            "https://www.instagram.com/vikram_hd_2027\n"
+            "Ниже — примеры реальных сессий:"
+        )
+        for fname in ["Razbor_na_God.pdf", "primer_prognoz2.pdf"]:
+            try:
+                with open(fname, "rb") as doc:
+                    await context.bot.send_document(chat_id, doc)
+            except:
+                pass
+        await update.message.reply_text("👇", reply_markup=get_contact_button())
 
-    await context.bot.send_message(chat_id=user.id, text="✅ Я вас понял.")
+async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+    print(f"Произошла ошибка: {context.error}")
 
-# 🧠 post_init — JobQueue
-async def setup_jobs(app):
-    app.job_queue.run_repeating(clear_chat_history, interval=900, first=15)
-
-# 🚀 Запуск бота
+# Основной запуск бота
 def main():
-    app = ApplicationBuilder().token(TOKEN).post_init(setup_jobs).build()
-
+    app = Application.builder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(CallbackQueryHandler(button_handler))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
-
+    app.add_handler(CallbackQueryHandler(handle_callback))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    app.add_error_handler(error_handler)
     app.run_polling()
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
