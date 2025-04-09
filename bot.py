@@ -39,6 +39,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     logging.info(f"User {user.id} вызвал /start")
 
+    # Формирование кнопок для главного меню
     keyboard = [
         [InlineKeyboardButton("🆓 Бесплатный разбор", callback_data="free")],
         [InlineKeyboardButton("🐝 Платный разбор от 17$", callback_data="paid")],
