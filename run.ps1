@@ -1,17 +1,23 @@
-Write-Host "🔍 Проверка зависимостей..."
-pip install -r requirements.txt
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
-Write-Host "✅ Проверка .env"
-if (!(Test-Path ".env")) {
-    Write-Host "❌ Файл .env не найден. Остановлено."
+Write-Host "`n🔍 Проверка окружения..." -ForegroundColor Cyan
+
+if (-not (Get-Command python -ErrorAction SilentlyContinue)) {
+    Write-Host "❌ Python не установлен." -ForegroundColor Red
     exit
 }
 
-$envVars = Get-Content ".env" | Where-Object { $_ -match "=" }
-foreach ($line in $envVars) {
-    $parts = $line -split "=", 2
-    [System.Environment]::SetEnvironmentVariable($parts[0], $parts[1], "Process")
+# Установка модулей
+pip install -r requirements.txt
+
+# Расшифровка .env
+if (Test-Path ".env.enc") {
+    Write-Host "🔐 Расшифровка .env.enc..." -ForegroundColor Magenta
+    python decrypt_env.py
+} else {
+    Write-Host "⚠️ .env.enc не найден, пропускаем расшифровку." -ForegroundColor Yellow
 }
 
-Write-Host "🚀 Запуск Telegram-бота..."
+# Запуск бота
+Write-Host "`n🚀 Запуск бота..." -ForegroundColor Green
 python bot.py

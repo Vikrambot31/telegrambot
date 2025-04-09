@@ -5,6 +5,7 @@ from telegram.ext import (
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 import os
 import logging
+from cryptography.fernet import Fernet
 from dotenv import load_dotenv
 
 # Сохрани сюда свой ключ (ОСТОРОЖНО, не выкладывай публично!)
