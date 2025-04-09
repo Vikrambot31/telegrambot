@@ -2,11 +2,10 @@ from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
 import os
 from dotenv import load_dotenv
-import asyncio
+import os
 
-# Загружаем переменные окружения из .env
-load_dotenv()
-TOKEN = os.getenv("BOT_TOKEN")
+load_dotenv()  # Загружаем переменные окружения
+TOKEN = os.getenv("BOT_TOKEN")  # Получаем токен бота из переменной окружения
 
 # Настройка меню
 keyboard = [
