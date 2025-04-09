@@ -25,13 +25,13 @@ keyboard = [
 menu_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
 
 def get_form_buttons():
-    return InlineKeyboardMarkup([
+    return InlineKeyboardMarkup([ 
         [InlineKeyboardButton("📝 ЖМИ СЮДА — заполни ФОРМУ", url="https://freehumandesignchart.com/")],
         [InlineKeyboardButton("🔄 Обновить страницу", callback_data="refresh")]
     ])
 
 def get_contact_button():
-    return InlineKeyboardMarkup([
+    return InlineKeyboardMarkup([ 
         [InlineKeyboardButton("📲 Написать в Telegram", url="https://t.me/Vikram_2027")],
         [InlineKeyboardButton("🔄 Обновить страницу", callback_data="refresh")]
     ])
@@ -134,12 +134,12 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
     print(f"Произошла ошибка: {context.error}")
 
 def main():
-    app = Application.builder().token(TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CallbackQueryHandler(handle_callback))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-    app.add_error_handler(error_handler)
-    app.run_polling()
+    app = Application.builder().token(TOKEN).build()  # Creating the bot with the token provided
+    app.add_handler(CommandHandler("start", start))  # Add handler for the /start command
+    app.add_handler(CallbackQueryHandler(handle_callback))  # Add handler for button click callbacks
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))  # Add handler for text messages
+    app.add_error_handler(error_handler)  # Add error handler
+    app.run_polling()  # Start polling for updates
 
 if __name__ == "__main__":
-    main()
+    main()  # Run the bot
