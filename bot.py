@@ -30,8 +30,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not user or user.id not in ALLOWED_IDS or user.id in BLACKLIST:
         return
 
-    logging.info(f"User {user.id} вызвал /start")
-
     keyboard = ReplyKeyboardMarkup(
         keyboard=[
             ["🆓 Бесплатный разбор"],
@@ -60,12 +58,40 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     if is_suspicious(text):
-        await context.bot.send_message(chat_id=user.id, text="⚠️ Обнаружена подозрительная активность. Вы занесены в чёрный список.")
+        await context.bot.send_message(chat_id=user.id, text="⚠️ Подозрительная активность. Вы занесены в чёрный список.")
         BLACKLIST.add(user.id)
         logging.warning(f"User {user.id} добавлен в BLACKLIST: {text}")
         return
 
-    await context.bot.send_message(chat_id=user.id, text=f"✅ Получено: {text}")
+    # Реакции на каждую кнопку
+    if text == "🆓 Бесплатный разбор":
+        for file in ["pic1.png", "pic2.png", "pic3.png"]:
+            await context.bot.send_photo(chat_id=user.id, photo=open(file, "rb"))
+        await context.bot.send_voice(chat_id=user.id, voice=open("x1.ogg", "rb"))
+        await context.bot.send_message(chat_id=user.id, text="📥 Заполнить форму: https://freehumandesignchart.com/")
+        await context.bot.send_message(chat_id=user.id, text="👉 Написать мне: https://t.me/Vikram_2027")
+
+    elif text == "💸 Платный разбор от 17$":
+        for file in ["pic4.png", "pic5.png"]:
+            await context.bot.send_photo(chat_id=user.id, photo=open(file, "rb"))
+        await context.bot.send_voice(chat_id=user.id, voice=open("x2.ogg", "rb"))
+        await context.bot.send_message(chat_id=user.id, text="👉 Написать мне: https://t.me/Vikram_2027")
+
+    elif text == "👑 Пакет VIP от 60$":
+        for file in ["pic6.png", "pic5.png", "Voprosi.png"]:
+            await context.bot.send_photo(chat_id=user.id, photo=open(file, "rb"))
+        await context.bot.send_voice(chat_id=user.id, voice=open("x3.ogg", "rb"))
+        await context.bot.send_message(chat_id=user.id, text="👉 Написать мне: https://t.me/Vikram_2027")
+
+    elif text == "📜 Обо мне / Отзывы":
+        await context.bot.send_message(chat_id=user.id, text="📄 Здесь вы можете прочитать про отзывы и систему — мой Instagram:\nhttps://www.instagram.com/vikram_hd_2027\n\nНиже — примеры:")
+        for file in ["Prognoz_Love_god.pdf", "primer_prognoz2.pdf"]:
+            await context.bot.send_document(chat_id=user.id, document=open(file, "rb"))
+        await context.bot.send_voice(chat_id=user.id, voice=open("primer_razbora.ogg", "rb"))
+        await context.bot.send_message(chat_id=user.id, text="👉 Написать мне: https://t.me/Vikram_2027")
+
+    else:
+        await context.bot.send_message(chat_id=user.id, text="✅ Я вас понял.")
 
 # 🚀 Запуск бота
 def main():
