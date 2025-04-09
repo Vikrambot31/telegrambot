@@ -1,149 +1,115 @@
 import os
-import asyncio
 import logging
 from dotenv import load_dotenv
-
 from telegram import (
-    Update, ReplyKeyboardMarkup, InlineKeyboardMarkup, InlineKeyboardButton
+    Update,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    ReplyKeyboardRemove,
 )
 from telegram.ext import (
-    Application, CommandHandler, MessageHandler, CallbackQueryHandler,
-    ContextTypes, filters, JobQueue
+    Application,
+    CommandHandler,
+    CallbackQueryHandler,
+    MessageHandler,
+    ContextTypes,
+    filters,
 )
-from gen_keys import get_gate_description
 
-# Загрузка токена
-load_dotenv()
-TOKEN = os.getenv("BOT_TOKEN")
+# Логирование
 logging.basicConfig(filename='bot.log', level=logging.INFO)
 
-ALLOWED_IDS = [446393818]
+# Загрузка .env
+load_dotenv()
+TOKEN = os.getenv("BOT_TOKEN")
+ALLOWED_IDS = [446393818]  # Твой Telegram ID
 
-keyboard = [
-    ["🆓 Бесплатный разбор"],
-    ["💸 Платный разбор от 15$"],
-    ["👑 Пакет VIP от 60$"],
-    ["📜 Обо мне / Отзывы"]
-]
-menu_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+# Клавиатура
+MAIN_KEYBOARD = InlineKeyboardMarkup([
+    [InlineKeyboardButton("🆓 Бесплатный разбор", callback_data="free")],
+    [InlineKeyboardButton("🐝 Платный разбор от 17$", callback_data="paid")],
+    [InlineKeyboardButton("👑 Пакет VIP от 60$", callback_data="vip")],
+    [InlineKeyboardButton("📜 Обо мне / Отзывы", callback_data="about")]
+])
 
-def get_form_buttons():
-    return InlineKeyboardMarkup([
-        [InlineKeyboardButton("📝 ЖМИ СЮДА — заполни ФОРМУ", url="https://freehumandesignchart.com/")],
-        [InlineKeyboardButton("🔄 Обновить страницу", callback_data="refresh")]
-    ])
+UPDATE_BUTTON = InlineKeyboardMarkup([
+    [InlineKeyboardButton("🔄 Обновить страницу", callback_data="refresh")]
+])
 
-def get_contact_button():
-    return InlineKeyboardMarkup([
-        [InlineKeyboardButton("📲 Написать в Telegram", url="https://t.me/Vikram_2027")],
-        [InlineKeyboardButton("🔄 Обновить страницу", callback_data="refresh")]
-    ])
+# Очистка чата
+async def clear_chat_history(context: ContextTypes.DEFAULT_TYPE):
+    for chat_id in ALLOWED_IDS:
+        try:
+            await context.bot.send_message(chat_id, "🧹 Автоочистка истории чата...")
+        except:
+            pass
 
+# Обработка /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat_id = update.effective_chat.id
-    if update.effective_user.id not in ALLOWED_IDS:
+    chat_id = update.effective_user.id
+    if chat_id not in ALLOWED_IDS:
         return
+
     logging.info(f"User {chat_id} вызвал /start")
 
     if os.path.exists("s1.webp"):
         with open("s1.webp", "rb") as sticker:
             await context.bot.send_sticker(chat_id, sticker)
 
-    if os.path.exists("intro-0.ogg"):
-        with open("intro-0.ogg", "rb") as audio:
-            await context.bot.send_audio(chat_id, audio)
+    await context.bot.send_voice(chat_id, voice=open("intro-0.ogg", "rb"))
+    await context.bot.send_message(chat_id, "👇 Ниже вы можете выбрать действие:", reply_markup=MAIN_KEYBOARD)
 
-    await context.bot.send_message(chat_id, "👇 Ниже вы можете выбрать действие:", reply_markup=menu_markup)
-
-async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id not in ALLOWED_IDS:
-        return
+# Обработка нажатий
+async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
-    if query.data == "decode_self":
-        await query.message.reply_text("Пока что функция в разработке.")
-    elif query.data == "refresh":
-        await context.bot.send_message(update.effective_chat.id, "🔄 Обновление...")
-        await start(update, context)
-
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat_id = update.effective_chat.id
-    if update.effective_user.id not in ALLOWED_IDS:
+    if query.from_user.id not in ALLOWED_IDS:
         return
 
-    text = update.message.text.lower()
+    choice = query.data
+    if choice == "free":
+        await query.message.reply_audio(audio=open("primer_razbora.ogg", "rb"))
+        await query.message.reply_text("✏️ ЖМИ СЮДА — заполни ФОРМУ", reply_markup=UPDATE_BUTTON)
+    elif choice == "paid":
+        await query.message.reply_document(document=open("primer_prognoz2.pdf", "rb"))
+        await query.message.reply_text("🔄 Обновить страницу", reply_markup=UPDATE_BUTTON)
+    elif choice == "vip":
+        await query.message.reply_document(document=open("Prognoz_Love_god.pdf", "rb"))
+        await query.message.reply_text("🔄 Обновить страницу", reply_markup=UPDATE_BUTTON)
+    elif choice == "about":
+        await query.message.reply_document(document=open("Razbor_na_God.pdf", "rb"))
+        await query.message.reply_text("🔄 Обновить страницу", reply_markup=UPDATE_BUTTON)
+    elif choice == "refresh":
+        await start(update, context)
+
+# Обработка сообщений
+async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_id = update.effective_user.id
+    if chat_id not in ALLOWED_IDS:
+        return
+
     if update.message.text.startswith("/"):
         return
 
-    if "speeeedvpnbot" in text or "http://" in text:
+    text = update.message.text.lower()
+    if "speeeedvpnbot" in text or "http://" in text or "https://" in text:
         await context.bot.send_message(chat_id, "⚠️ Обнаружена подозрительная активность. Завершаю.")
         return
 
-    if "бесплатный" in text:
-        await update.message.reply_text("Вы выбрали бесплатный разбор.")
-        for fname in ["pic1.png", "pic2.png", "pic3.png"]:
-            if os.path.exists(fname):
-                with open(fname, "rb") as img:
-                    await context.bot.send_photo(chat_id, img)
-                    await asyncio.sleep(0.5)
-        if os.path.exists("x1.ogg"):
-            with open("x1.ogg", "rb") as audio:
-                await context.bot.send_audio(chat_id, audio)
+    await context.bot.send_message(chat_id, "🔁 Введите команду или нажмите кнопку.")
 
-        await update.message.reply_text("👇 Ниже вы можете выбрать действие:", reply_markup=get_form_buttons())
+# Инициализация job_queue
+async def post_init(app: Application):
+    app.job_queue.run_repeating(clear_chat_history, interval=900, first=10)
 
-    elif "платный" in text:
-        await update.message.reply_text("💸 Платный разбор. Информация ниже.")
-        for fname in ["pic4.png", "pic4-1.png", "pic5.png"]:
-            if os.path.exists(fname):
-                with open(fname, "rb") as img:
-                    await context.bot.send_photo(chat_id, img)
-                    await asyncio.sleep(0.5)
-        if os.path.exists("x2.ogg"):
-            with open("x2.ogg", "rb") as audio:
-                await context.bot.send_audio(chat_id, audio)
-
-        await update.message.reply_text("👇", reply_markup=get_contact_button())
-
-    elif "vip" in text:
-        await update.message.reply_text("👑 Пакет VIP: смотрите материалы ниже.")
-        for fname in ["pic6.png", "pic5.png", "Voprosi.png"]:
-            if os.path.exists(fname):
-                with open(fname, "rb") as img:
-                    await context.bot.send_photo(chat_id, img)
-                    await asyncio.sleep(0.5)
-        if os.path.exists("x3.ogg"):
-            with open("x3.ogg", "rb") as audio:
-                await context.bot.send_audio(chat_id, audio)
-
-        await update.message.reply_text("👇", reply_markup=get_contact_button())
-
-    elif "обо мне" in text or "отзывы" in text:
-        await update.message.reply_text("Здесь вы можете прочитать про отзывы и систему — мой Instagram:\nhttps://www.instagram.com/vikram_hd_2027\nНиже — примеры реальных сессий:")
-        for fname in ["Razbor_na_God.pdf", "primer_prognoz2.pdf"]:
-            if os.path.exists(fname):
-                with open(fname, "rb") as doc:
-                    await context.bot.send_document(chat_id, doc)
-        await update.message.reply_text("👇", reply_markup=get_contact_button())
-
-async def clear_chat_history(context: ContextTypes.DEFAULT_TYPE):
-    for chat_id in ALLOWED_IDS:
-        try:
-            await context.bot.send_message(chat_id, "🧹 Автоочистка истории чата...")
-        except Exception as e:
-            logging.warning(f"Ошибка при автоочистке: {e}")
-
-async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
-    logging.error(f"Произошла ошибка: {context.error}")
-
+# Основной запуск
 def main():
-    app = Application.builder().token(TOKEN).post_init(lambda app: app.job_queue.run_repeating(clear_chat_history, interval=900, first=10)).build()
+    app = Application.builder().token(TOKEN).post_init(post_init).build()
 
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(CallbackQueryHandler(handle_callback))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-    app.add_error_handler(error_handler)
+    app.add_handler(CallbackQueryHandler(button))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler))
 
     app.run_polling()
 
