@@ -1,20 +1,28 @@
-from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
-from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
 import os
+import asyncio
 from dotenv import load_dotenv
-import os
 
-load_dotenv()  # Загружаем переменные окружения
-TOKEN = os.getenv("BOT_TOKEN")  # Получаем токен бота из переменной окружения
+from telegram import (
+    Update, ReplyKeyboardMarkup, InlineKeyboardMarkup, InlineKeyboardButton
+)
+from telegram.ext import (
+    Application, CommandHandler, MessageHandler,
+    ContextTypes, CallbackQueryHandler, filters
+)
 
-# Настройка меню
+from gen_keys import get_gate_description
+
+# Загрузка токена
+load_dotenv()
+TOKEN = os.getenv("BOT_TOKEN")
+
 keyboard = [
     ["🆓 Бесплатный разбор"],
     ["💸 Платный разбор от 15$"],
     ["👑 Пакет VIP от 60$"],
     ["📜 Обо мне / Отзывы"]
 ]
-menu_markup = InlineKeyboardMarkup(keyboard)
+menu_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
 
 def get_form_buttons():
     return InlineKeyboardMarkup([
@@ -28,37 +36,34 @@ def get_contact_button():
         [InlineKeyboardButton("🔄 Обновить страницу", callback_data="refresh")]
     ])
 
-# Команда start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
+
     try:
-        # Отправляем стикер
         with open("s1.webp", "rb") as sticker:
             await context.bot.send_sticker(chat_id, sticker)
     except:
         pass
 
     try:
-        # Отправляем аудио
         with open("intro-0.ogg", "rb") as audio:
             await context.bot.send_audio(chat_id, audio)
     except:
         pass
 
-    # Отправляем главное меню
     await update.message.reply_text("👇 Ниже вы можете выбрать действие:", reply_markup=menu_markup)
 
-# Обработка кнопок
 async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
-    if query.data == "refresh":
+    if query.data == "decode_self":
+        await query.message.reply_text("Пока что функция в разработке.")
+    elif query.data == "refresh":
         chat_id = update.effective_chat.id
         await context.bot.send_message(chat_id, "🔄 Обновление...")
         await start(update, context)
 
-# Обработка сообщений
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     text = update.message.text.lower()
@@ -128,7 +133,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
     print(f"Произошла ошибка: {context.error}")
 
-# Основной запуск бота
 def main():
     app = Application.builder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))

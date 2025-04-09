@@ -4,7 +4,7 @@ cryptography
 scikit-learn
 litellm
 openai
-python-telegram-bot[job-queue]==22.0
+python-telegram-bot==20.3
 python-dotenv
 
 
