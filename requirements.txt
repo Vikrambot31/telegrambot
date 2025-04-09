@@ -4,7 +4,7 @@ cryptography
 scikit-learn
 litellm
 openai
-python-telegram-bot==20.3
+python-telegram-bot==22.0
 python-dotenv
 
 

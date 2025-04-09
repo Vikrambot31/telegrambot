@@ -1,4 +1,7 @@
-from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackQueryHandler, MessageHandler, filters, JobQueue
+from telegram.ext import (
+    ApplicationBuilder, ContextTypes, CommandHandler,
+    CallbackQueryHandler, MessageHandler, filters
+)
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 import os
 import logging
@@ -7,81 +10,88 @@ from dotenv import load_dotenv
 # Загрузка переменных окружения
 load_dotenv()
 TOKEN = os.getenv("BOT_TOKEN")
-ALLOWED_IDS = [446393818]
 
-# Настройка логирования
+ALLOWED_IDS = [446393818]  # твой ID
+BLACKLIST = set()
+
+# Логирование
 logging.basicConfig(filename='bot.log', level=logging.INFO)
 
-# Очистка чата каждые 15 минут
+# 🚫 Проверка на вредоносные ссылки
+def is_suspicious(text: str) -> bool:
+    return any(word in text.lower() for word in ["http://", "https://", "SpeeeedVPNbot"])
+
+# 🧹 Автоочистка
 async def clear_chat_history(context: ContextTypes.DEFAULT_TYPE):
     for chat_id in ALLOWED_IDS:
         try:
             await context.bot.send_message(chat_id, "🧹 Автоочистка истории чата...")
         except Exception as e:
-            logging.warning(f"Ошибка при очистке: {e}")
+            logging.warning(f"[ОЧИСТКА] Ошибка: {e}")
 
-# Обработка команды /start
+# 🔘 Главное меню
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat_id = update.effective_user.id
-    if chat_id not in ALLOWED_IDS:
+    user = update.effective_user
+    if user.id not in ALLOWED_IDS or user.id in BLACKLIST:
         return
 
-    logging.info(f"User {chat_id} вызвал /start")
+    logging.info(f"User {user.id} вызвал /start")
 
     keyboard = [
         [InlineKeyboardButton("🆓 Бесплатный разбор", callback_data="free")],
         [InlineKeyboardButton("🐝 Платный разбор от 17$", callback_data="paid")],
         [InlineKeyboardButton("👑 Пакет VIP от 60$", callback_data="vip")],
         [InlineKeyboardButton("📜 Обо мне / Отзывы", callback_data="about")],
-        [InlineKeyboardButton("🔄 Обновить страницу", callback_data="refresh")],
+        [InlineKeyboardButton("🔄 Обновить страницу", callback_data="refresh")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    # Отправка картинки и стикера
     if os.path.exists("s1.webp"):
         with open("s1.webp", "rb") as sticker:
-            await context.bot.send_sticker(chat_id=chat_id, sticker=sticker)
+            await context.bot.send_sticker(chat_id=user.id, sticker=sticker)
 
-    await update.message.reply_text("👇 Ниже вы можете выбрать действие:", reply_markup=reply_markup)
+    await context.bot.send_message(chat_id=user.id, text="👇 Ниже вы можете выбрать действие:", reply_markup=reply_markup)
 
-# Обработка нажатия кнопок
+# 🖱 Обработка кнопок
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
-    chat_id = query.from_user.id
 
-    if chat_id not in ALLOWED_IDS:
+    user = query.from_user
+    if user.id not in ALLOWED_IDS or user.id in BLACKLIST:
         return
 
-    data = query.data
-    if data == "refresh":
-        await context.bot.send_message(chat_id, "♻️ Обновление страницы...")
+    if query.data == "refresh":
         return await start(update, context)
 
-    await context.bot.send_message(chat_id, f"Вы выбрали: {data}")
+    await context.bot.send_message(chat_id=user.id, text=f"Вы выбрали: {query.data}")
 
-# Обработка обычных сообщений
+# 💬 Обработка обычных сообщений
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
     text = update.message.text
-    chat_id = update.effective_user.id
 
-    if chat_id not in ALLOWED_IDS:
+    if user.id not in ALLOWED_IDS or user.id in BLACKLIST:
         return
+
     if text.startswith("/"):
         return
-    if "SpeeeedVPNbot" in text or "http://" in text or "https://" in text:
-        await context.bot.send_message(chat_id, "⚠️ Обнаружена подозрительная активность. Завершаю.")
+
+    if is_suspicious(text):
+        await context.bot.send_message(chat_id=user.id, text="⚠️ Обнаружена подозрительная активность. Вы занесены в чёрный список.")
+        BLACKLIST.add(user.id)
+        logging.warning(f"User {user.id} добавлен в BLACKLIST: {text}")
         return
 
-    await context.bot.send_message(chat_id, "Я вас понял.")
+    await context.bot.send_message(chat_id=user.id, text="Я вас понял.")
 
-# 🚀 Основная функция запуска
-async def post_init(application):
-    # Явное создание и регистрация задачи в job_queue
-    application.job_queue.run_repeating(clear_chat_history, interval=900, first=10)
+# 🔧 post_init для JobQueue
+async def setup_jobs(app):
+    app.job_queue.run_repeating(clear_chat_history, interval=900, first=10)
 
+# 🚀 Запуск
 def main():
-    app = ApplicationBuilder().token(TOKEN).post_init(post_init).build()
+    app = ApplicationBuilder().token(TOKEN).post_init(setup_jobs).build()
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(button_handler))
