@@ -13,6 +13,8 @@ TOKEN = os.getenv("BOT_TOKEN")
 if not TOKEN:
     raise ValueError("❌ BOT_TOKEN не найден в .env")
 
+print(f"✅ Загружен токен: {TOKEN}")
+
 # ✅ ID разрешённых пользователей
 ALLOWED_IDS = [446393818]
 BLACKLIST = set()
