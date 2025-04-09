@@ -7,6 +7,17 @@ import os
 import logging
 from dotenv import load_dotenv
 
+# Сохрани сюда свой ключ (ОСТОРОЖНО, не выкладывай публично!)
+secret_key = "tKSi68...VIVkE="  # <- вставь сюда свой секретный ключ
+
+# Расшифровка файла .env.enc
+if os.path.exists(".env.enc"):
+    fernet = Fernet(secret_key)
+    with open(".env.enc", "rb") as enc_file:
+        decrypted_data = fernet.decrypt(enc_file.read())
+    with open(".env", "wb") as dec_file:
+        dec_file.write(decrypted_data)
+
 # Загрузка переменных окружения
 load_dotenv()
 TOKEN = os.getenv("BOT_TOKEN")
