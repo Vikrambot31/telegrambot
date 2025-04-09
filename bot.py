@@ -6,7 +6,7 @@ from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from cryptography.fernet import Fernet
 from dotenv import load_dotenv
 import os
-from cryptography.fernet import Fernet
+import logging
 
 load_dotenv()  # Загружаем переменные окружения из .env файла
 secret_key = os.getenv("FERNET_KEY")  # Получаем ключ из переменной окружения
