@@ -41,7 +41,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await context.bot.send_message(
         chat_id=user.id,
-        text="👇 Ниже вы можете выбрать действие:",
+        text="👇 Выберите один из пунктов меню:",
         reply_markup=reply_markup
     )
 
@@ -62,17 +62,16 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logging.warning(f"[SPAM] User {user.id}: {text}")
         return
 
-    # Ответ по нажатию кнопки
     if text == "🆓 Бесплатный разбор":
-        await update.message.reply_text("Вы выбрали: Бесплатный разбор.")
+        await update.message.reply_text("🎁 Отправьте вашу дату рождения и вопрос — я сделаю бесплатный разбор.")
     elif text == "💸 Платный разбор от 15$":
-        await update.message.reply_text("Вы выбрали: Платный разбор.")
+        await update.message.reply_text("💸 Чтобы заказать платный разбор, напишите: /paid")
     elif text == "👑 Пакет VIP от 60$":
-        await update.message.reply_text("Вы выбрали: VIP пакет.")
+        await update.message.reply_text("👑 VIP-пакет включает личную встречу + поддержку 7 дней.")
     elif text == "📜 Обо мне / Отзывы":
-        await update.message.reply_text("Меня зовут Викрам. Я — психолог и аналитик по Human Design.")
+        await update.message.reply_text("📜 Меня зовут Викрам. Я — психолог и аналитик по Human Design.\nОтзывы — https://t.me/VikramReviews")
     else:
-        await update.message.reply_text("Пожалуйста, выберите один из пунктов меню.")
+        await update.message.reply_text("Выберите действие из меню ниже 👇")
 
 # 🚀 Запуск бота
 def main():
