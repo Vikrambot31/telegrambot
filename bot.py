@@ -10,6 +10,13 @@ import asyncio
 load_dotenv()
 TOKEN = os.getenv("BOT_TOKEN")
 
+# ID владельца бота (твой)
+OWNER_ID = 446393818
+
+# Проверка на владельца
+def is_owner(user_id: int) -> bool:
+    return user_id == OWNER_ID
+
 used_ids = set()
 
 keyboard = [
@@ -33,6 +40,11 @@ def get_contact_button():
     ])
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    if not is_owner(user_id):
+        await update.message.reply_text("⛔ У вас нет доступа к этой функции.")
+        return
+
     chat_id = update.effective_chat.id
 
     try:
@@ -54,6 +66,10 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
 
     if query.data == "decode_self":
+        user_id = update.effective_user.id
+        if not is_owner(user_id):
+            await query.message.reply_text("⛔ Доступ только для администратора.")
+            return
         await query.message.reply_text("Пока что функция в разработке")
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -86,7 +102,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await asyncio.sleep(1)
 
         try:
-            with open("x1.ogg", "rb") as audio:
+            with open("x1.ogg", " "rb") as audio:
                 await context.bot.send_audio(chat_id, audio)
         except:
             pass
