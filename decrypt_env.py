@@ -1,7 +1,8 @@
 from cryptography.fernet import Fernet
 import os
 
-key = b"вставь_сюда_твой_секретный_ключ"
+# ❗️Вставь сюда свой актуальный ключ из encrypt_env.py
+key = b"tKSi68rG8Cr6bxBB662nD1gwPgkrcCi9MwVVzIVIk="  # пример — замени на свой!
 
 fernet = Fernet(key)
 
@@ -14,3 +15,4 @@ with open(".env", "wb") as f:
     f.write(decrypted)
 
 print("✅ Расшифровка завершена.")
+

@@ -3,35 +3,36 @@ from telegram.ext import (
     CallbackQueryHandler, MessageHandler, filters
 )
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
-import os
-import logging
 from cryptography.fernet import Fernet
 from dotenv import load_dotenv
+import os
+from cryptography.fernet import Fernet
 
-# Сохрани сюда свой ключ (ОСТОРОЖНО, не выкладывай публично!)
-secret_key = "tKSi68...VIVkE="  # <- вставь сюда свой секретный ключ
+load_dotenv()  # Загружаем переменные окружения из .env файла
+secret_key = os.getenv("FERNET_KEY")  # Получаем ключ из переменной окружения
+fernet = Fernet(secret_key)  # Инициализируем объект Fernet с этим ключом
 
-# Расшифровка файла .env.enc
+# ✅ Расшифровка .env.enc -> .env
 if os.path.exists(".env.enc"):
-    fernet = Fernet(secret_key)
     with open(".env.enc", "rb") as enc_file:
-        decrypted_data = fernet.decrypt(enc_file.read())
+        decrypted = fernet.decrypt(enc_file.read())
     with open(".env", "wb") as dec_file:
-        dec_file.write(decrypted_data)
+        dec_file.write(decrypted)
 
-# Загрузка переменных окружения
+# ✅ Загрузка переменных окружения
 load_dotenv()
 TOKEN = os.getenv("BOT_TOKEN")
 
-ALLOWED_IDS = [446393818]  # твой ID
+# ✅ ID разрешённых пользователей
+ALLOWED_IDS = [446393818]
 BLACKLIST = set()
 
-# Логирование
+# ✅ Логирование
 logging.basicConfig(filename='bot.log', level=logging.INFO)
 
-# 🚫 Проверка на вредоносные ссылки
+# 🔍 Проверка на вредоносные фразы
 def is_suspicious(text: str) -> bool:
-    return any(word in text.lower() for word in ["http://", "https://", "SpeeeedVPNbot"])
+    return any(word in text.lower() for word in ["http://", "https://", "vpn", "bot", "admin", "SpeeeedVPNbot"])
 
 # 🧹 Автоочистка
 async def clear_chat_history(context: ContextTypes.DEFAULT_TYPE):
@@ -41,10 +42,10 @@ async def clear_chat_history(context: ContextTypes.DEFAULT_TYPE):
         except Exception as e:
             logging.warning(f"[ОЧИСТКА] Ошибка: {e}")
 
-# 🔘 Главное меню
+# ▶ Главное меню
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
-    if user.id not in ALLOWED_IDS or user.id in BLACKLIST:
+    if not user or user.id not in ALLOWED_IDS or user.id in BLACKLIST:
         return
 
     logging.info(f"User {user.id} вызвал /start")
@@ -56,21 +57,27 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("📜 Обо мне / Отзывы", callback_data="about")],
         [InlineKeyboardButton("🔄 Обновить страницу", callback_data="refresh")]
     ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
 
     if os.path.exists("s1.webp"):
-        with open("s1.webp", "rb") as sticker:
-            await context.bot.send_sticker(chat_id=user.id, sticker=sticker)
+        try:
+            with open("s1.webp", "rb") as sticker:
+                await context.bot.send_sticker(chat_id=user.id, sticker=sticker)
+        except Exception as e:
+            logging.error(f"[СТИКЕР] Ошибка: {e}")
 
-    await context.bot.send_message(chat_id=user.id, text="👇 Ниже вы можете выбрать действие:", reply_markup=reply_markup)
+    await context.bot.send_message(
+        chat_id=user.id,
+        text="👇 Ниже вы можете выбрать действие:",
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
 
-# 🖱 Обработка кнопок
+# 🔘 Обработка кнопок
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
     user = query.from_user
-    if user.id not in ALLOWED_IDS or user.id in BLACKLIST:
+    if not user or user.id not in ALLOWED_IDS or user.id in BLACKLIST:
         return
 
     if query.data == "refresh":
@@ -78,12 +85,12 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await context.bot.send_message(chat_id=user.id, text=f"Вы выбрали: {query.data}")
 
-# 💬 Обработка обычных сообщений
+# 💬 Обработка текстовых сообщений
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     text = update.message.text
 
-    if user.id not in ALLOWED_IDS or user.id in BLACKLIST:
+    if not user or user.id not in ALLOWED_IDS or user.id in BLACKLIST:
         return
 
     if text.startswith("/"):
@@ -95,13 +102,13 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logging.warning(f"User {user.id} добавлен в BLACKLIST: {text}")
         return
 
-    await context.bot.send_message(chat_id=user.id, text="Я вас понял.")
+    await context.bot.send_message(chat_id=user.id, text="✅ Я вас понял.")
 
-# 🔧 post_init для JobQueue
+# 🧠 post_init — JobQueue
 async def setup_jobs(app):
-    app.job_queue.run_repeating(clear_chat_history, interval=900, first=10)
+    app.job_queue.run_repeating(clear_chat_history, interval=900, first=15)
 
-# 🚀 Запуск
+# 🚀 Запуск бота
 def main():
     app = ApplicationBuilder().token(TOKEN).post_init(setup_jobs).build()
 
