@@ -1,89 +1,87 @@
 import os
 import asyncio
+from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, CallbackContext, filters
 from dotenv import load_dotenv
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import (
-    ApplicationBuilder, CommandHandler,
-    CallbackQueryHandler, ContextTypes
-)
+from gen_keys import get_gate_description
 
 load_dotenv()
 TOKEN = os.getenv("BOT_TOKEN")
-OWNER_ID = 446393818  # Только ты получаешь доступ
-blacklist = set()  # Чёрный список, при необходимости можно расширить
+OWNER_ID = 446393818  # Только ты управляешь
 
-# Главное меню
-def main_menu():
-    return InlineKeyboardMarkup([
-        [InlineKeyboardButton("🆓 Бесплатный разбор", callback_data="free_analysis")],
-        [InlineKeyboardButton("💸 Платный разбор от 15$", callback_data="paid_analysis")],
-        [InlineKeyboardButton("👑 Пакет VIP от 60$", callback_data="vip_package")],
-        [InlineKeyboardButton("📜 Обо мне / Отзывы", callback_data="about_me")]
-    ])
+used_ids = set()
 
-# Кнопка обновления
-def refresh_button():
-    return InlineKeyboardMarkup([
-        [InlineKeyboardButton("🔄 Обновить страницу", callback_data="refresh_page")]
-    ])
+# --- Хелпер для отправки медиа ---
+def media_path(filename):
+    return os.path.join(os.getcwd(), filename)
 
-# Команда /start
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+# --- Обработка команды /start ---
+async def start(update: Update, context: CallbackContext.DEFAULT_TYPE):
     user_id = update.effective_user.id
-    if user_id in blacklist:
-        await update.message.reply_text("🚫 Доступ запрещён.")
+    if user_id not in used_ids:
+        used_ids.add(user_id)
+
+    keyboard = [['📋 Бесплатный разбор'],
+                ['💸 Платный разбор от 15$'],
+                ['👑 Пакет VIP от 60$'],
+                ['📜 Обо мне / Отзывы']]
+    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+    await update.message.reply_text("👇 Ниже вы можете выбрать действие:", reply_markup=reply_markup)
+
+# --- Кнопка «Обновить страницу» ---
+async def refresh(update: Update, context: CallbackContext.DEFAULT_TYPE):
+    chat_id = update.effective_chat.id
+    async for msg in context.bot.get_chat_history(chat_id):
+        try:
+            await context.bot.delete_message(chat_id, msg.message_id)
+        except:
+            continue
+    await start(update, context)
+
+# --- Главная логика ответов ---
+async def handle_message(update: Update, context: CallbackContext.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    if user_id != OWNER_ID:
+        await update.message.reply_text("⛔️ Извините, бот доступен только автору.")
         return
-    await context.bot.send_sticker(chat_id=update.effective_chat.id, sticker=open("s1.webp", "rb"))
-    await asyncio.sleep(1)
-    await context.bot.send_audio(chat_id=update.effective_chat.id, audio=open("intro-0.ogg", "rb"))
-    await asyncio.sleep(1)
-    await update.message.reply_text("👇 Ниже вы можете выбрать действие:", reply_markup=main_menu())
 
-# Обработка нажатий
-async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
+    text = update.message.text
 
-    if query.from_user.id in blacklist:
-        await query.message.reply_text("🚫 У вас нет доступа.")
-        return
+    if text == '📋 Бесплатный разбор':
+        await context.bot.send_voice(chat_id=update.effective_chat.id, voice=open(media_path("intro-0.ogg"), "rb"))
+        await update.message.reply_text("🧠 Расшифровать самому", reply_markup=ReplyKeyboardMarkup(
+            [['🔄 Обновить страницу']], resize_keyboard=True))
 
-    if query.data == "free_analysis":
-        await query.message.reply_audio(audio=open("primer_razbora.ogg", "rb"))
-        await asyncio.sleep(1)
-        await query.message.reply_text(
-            "📝 ЖМИ СЮДА — заполни ФОРМУ",
-            reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("🧠 Расшифровать самому", callback_data="manual_decode")],
-                [InlineKeyboardButton("🔄 Обновить страницу", callback_data="refresh_page")]
-            ])
-        )
+    elif text == '💸 Платный разбор от 15$':
+        await context.bot.send_photo(chat_id=update.effective_chat.id, photo=open(media_path("pic2.png"), "rb"))
+        await update.message.reply_text("🔄 Обновить страницу", reply_markup=ReplyKeyboardMarkup(
+            [['🔄 Обновить страницу']], resize_keyboard=True))
 
-    elif query.data == "paid_analysis":
-        await query.message.reply_text("💰 Платный разбор от 15$", reply_markup=refresh_button())
+    elif text == '👑 Пакет VIP от 60$':
+        await context.bot.send_photo(chat_id=update.effective_chat.id, photo=open(media_path("pic3.png"), "rb"))
+        await update.message.reply_text("🔄 Обновить страницу", reply_markup=ReplyKeyboardMarkup(
+            [['🔄 Обновить страницу']], resize_keyboard=True))
 
-    elif query.data == "vip_package":
-        await query.message.reply_text("👑 Пакет VIP от 60$", reply_markup=refresh_button())
+    elif text == '📜 Обо мне / Отзывы':
+        await context.bot.send_photo(chat_id=update.effective_chat.id, photo=open(media_path("Voprosi.png"), "rb"))
+        await update.message.reply_text("🔄 Обновить страницу", reply_markup=ReplyKeyboardMarkup(
+            [['🔄 Обновить страницу']], resize_keyboard=True))
 
-    elif query.data == "about_me":
-        await query.message.reply_audio(audio=open("about.ogg", "rb"))
-        await asyncio.sleep(1)
-        await context.bot.send_document(chat_id=query.message.chat.id, document=open("primer_prognoz2.pdf", "rb"))
-        await query.message.reply_text("Отзывы и примеры разборов", reply_markup=refresh_button())
+    elif text == '🧠 Расшифровать самому':
+        await update.message.reply_text("✍️ ЖМИ СЮДА — заполни ФОРМУ")
 
-    elif query.data == "manual_decode":
-        await query.message.reply_text("⏳ Пока что функция в разработке", reply_markup=refresh_button())
+    elif text == '🔄 Обновить страницу':
+        await refresh(update, context)
 
-    elif query.data == "refresh_page":
-        await query.message.delete()
-        await start(update, context)
+    else:
+        await update.message.reply_text("Не понял... Выберите действие из меню.")
 
-# Запуск бота
-def main():
+# --- MAIN ---
+async def main():
     app = ApplicationBuilder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(CallbackQueryHandler(handle_callback))
-    app.run_polling()
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    await app.run_polling()
 
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    asyncio.run(main())
