@@ -1,33 +1,26 @@
-from telegram.ext import (
-    Application, CommandHandler, CallbackQueryHandler, MessageHandler,
-    ContextTypes, filters
-)
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from dotenv import load_dotenv
 import os
 import logging
-from cryptography.fernet import Fernet
 
-# Загрузка переменных окружения из .env
+# Загружаем переменные окружения из .env
 load_dotenv()
 TOKEN = os.getenv("BOT_TOKEN")
-FERNET_KEY = os.getenv("FERNET_KEY")
 print(f"Loaded token: {TOKEN}")
-
-# Инициализация Fernet для безопасности
-fernet = Fernet(FERNET_KEY)  # Для работы с .env.enc
 
 # Логирование
 logging.basicConfig(filename='bot.log', level=logging.INFO)
 
-# Кнопки для меню
+# Создаем клавиатуру
 keyboard = [
-    ["🆓 Бесплатный разбор"],
-    ["💸 Платный разбор от 15$"],
-    ["👑 Пакет VIP от 60$"],
-    ["📜 Обо мне / Отзывы"]
+    [InlineKeyboardButton("🆓 Бесплатный разбор", callback_data="free")],
+    [InlineKeyboardButton("💸 Платный разбор от 15$", callback_data="paid")],
+    [InlineKeyboardButton("👑 Пакет VIP от 60$", callback_data="vip")],
+    [InlineKeyboardButton("📜 Обо мне / Отзывы", callback_data="about")]
 ]
-menu_markup = InlineKeyboardMarkup(keyboard, resize_keyboard=True)
+
+menu_markup = InlineKeyboardMarkup(keyboard)
 
 def get_form_buttons():
     return InlineKeyboardMarkup([ 
@@ -35,7 +28,7 @@ def get_form_buttons():
         [InlineKeyboardButton("🔄 Обновить страницу", callback_data="refresh")]
     ])
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def start(update: Update, context):
     chat_id = update.effective_chat.id
 
     try:
@@ -52,7 +45,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text("👇 Ниже вы можете выбрать действие:", reply_markup=menu_markup)
 
-async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def handle_callback(update: Update, context):
     query = update.callback_query
     await query.answer()
 
@@ -61,7 +54,7 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(chat_id, "🔄 Обновление...")
         await start(update, context)
 
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def handle_message(update: Update, context):
     chat_id = update.effective_chat.id
     text = update.message.text.lower()
 
@@ -124,7 +117,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 pass
         await update.message.reply_text("👇", reply_markup=get_form_buttons())
 
-async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def error_handler(update: object, context) -> None:
     print(f"Произошла ошибка: {context.error}")
 
 def main():
