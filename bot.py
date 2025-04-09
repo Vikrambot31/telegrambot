@@ -1,72 +1,51 @@
 from telegram import Update, ReplyKeyboardMarkup, KeyboardButton
-from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters
+from telegram.ext import (
+    ApplicationBuilder, CommandHandler, MessageHandler,
+    ContextTypes, filters
+)
 import logging
 import os
-
-# ✅ Загрузка переменных окружения
 from dotenv import load_dotenv
-load_dotenv()
 
+# 📦 Загрузка переменных окружения
+load_dotenv()
 TOKEN = os.getenv("BOT_TOKEN")
 
-# ✅ ID разрешённых пользователей
-ALLOWED_IDS = [446393818]
+# ✅ Разрешённые пользователи
+ALLOWED_IDS = [446393818]  # Твой Telegram ID
 BLACKLIST = set()
 
-# ✅ Логирование
+# 📋 Логирование
 logging.basicConfig(filename='bot.log', level=logging.INFO)
 
-# 🔍 Проверка на вредоносные фразы
+# 🛡️ Проверка на спам
 def is_suspicious(text: str) -> bool:
-    return any(word in text.lower() for word in ["http://", "https://", "vpn", "bot", "admin", "SpeeeedVPNbot"])
+    blacklist_words = ["http://", "https://", "vpn", "bot", "admin", "SpeeeedVPNbot"]
+    return any(word in text.lower() for word in blacklist_words)
 
-# 🧹 Автоочистка
-async def clear_chat_history(context: ContextTypes.DEFAULT_TYPE):
-    for chat_id in ALLOWED_IDS:
-        try:
-            await context.bot.send_message(chat_id, "🧹 Автоочистка истории чата...")
-        except Exception as e:
-            logging.warning(f"[ОЧИСТКА] Ошибка: {e}")
-
-# ▶ Главное меню
+# ▶ Обработчик /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     if not user or user.id not in ALLOWED_IDS or user.id in BLACKLIST:
         return
 
-    logging.info(f"User {user.id} вызвал /start")
+    logging.info(f"Пользователь {user.id} вызвал /start")
 
-    # Кнопки для обычной клавиатуры
     keyboard = [
         [KeyboardButton("🆓 Бесплатный разбор")],
-        [KeyboardButton("🐝 Платный разбор от 17$")],
+        [KeyboardButton("💸 Платный разбор от 15$")],
         [KeyboardButton("👑 Пакет VIP от 60$")],
-        [KeyboardButton("📜 Обо мне / Отзывы")],
-        [KeyboardButton("🔄 Обновить страницу")]
+        [KeyboardButton("📜 Обо мне / Отзывы")]
     ]
-
-    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
+    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
 
     await context.bot.send_message(
         chat_id=user.id,
-        text="👇 Выберите действие:",
+        text="👇 Ниже вы можете выбрать действие:",
         reply_markup=reply_markup
     )
 
-# 🔘 Обработка кнопок
-async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user = update.effective_user
-    if not user or user.id not in ALLOWED_IDS or user.id in BLACKLIST:
-        return
-
-    text = update.message.text
-
-    if text == "🔄 Обновить страницу":
-        return await start(update, context)
-
-    await context.bot.send_message(chat_id=user.id, text=f"Вы выбрали: {text}")
-
-# 💬 Обработка текстовых сообщений
+# 💬 Обработка текста
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     text = update.message.text
@@ -74,29 +53,33 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not user or user.id not in ALLOWED_IDS or user.id in BLACKLIST:
         return
 
-    if text.startswith("/"):
-        return
-
     if is_suspicious(text):
-        await context.bot.send_message(chat_id=user.id, text="⚠️ Обнаружена подозрительная активность. Вы занесены в чёрный список.")
         BLACKLIST.add(user.id)
-        logging.warning(f"User {user.id} добавлен в BLACKLIST: {text}")
+        await context.bot.send_message(
+            chat_id=user.id,
+            text="⚠️ Обнаружен спам. Вы занесены в чёрный список."
+        )
+        logging.warning(f"[SPAM] User {user.id}: {text}")
         return
 
-    await context.bot.send_message(chat_id=user.id, text="✅ Я вас понял.")
-
-# 🧠 post_init — JobQueue
-async def setup_jobs(app):
-    app.job_queue.run_repeating(clear_chat_history, interval=900, first=15)
+    # Ответ по нажатию кнопки
+    if text == "🆓 Бесплатный разбор":
+        await update.message.reply_text("Вы выбрали: Бесплатный разбор.")
+    elif text == "💸 Платный разбор от 15$":
+        await update.message.reply_text("Вы выбрали: Платный разбор.")
+    elif text == "👑 Пакет VIP от 60$":
+        await update.message.reply_text("Вы выбрали: VIP пакет.")
+    elif text == "📜 Обо мне / Отзывы":
+        await update.message.reply_text("Меня зовут Викрам. Я — психолог и аналитик по Human Design.")
+    else:
+        await update.message.reply_text("Пожалуйста, выберите один из пунктов меню.")
 
 # 🚀 Запуск бота
 def main():
-    app = ApplicationBuilder().token(TOKEN).post_init(setup_jobs).build()
-
+    app = ApplicationBuilder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
-
     app.run_polling()
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
