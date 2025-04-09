@@ -15,6 +15,7 @@ from gen_keys import get_gate_description
 # Загрузка токена
 load_dotenv()
 TOKEN = os.getenv("BOT_TOKEN")
+print(f"Loaded token: {TOKEN}")  # This will print the loaded token to the console
 
 keyboard = [
     ["🆓 Бесплатный разбор"],
