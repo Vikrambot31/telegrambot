@@ -1,73 +1,82 @@
 import os
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, InputFile
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 from dotenv import load_dotenv
-from telegram import Update, ReplyKeyboardMarkup
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
-from gen_keys import get_gate_description
 
 load_dotenv()
 TOKEN = os.getenv("BOT_TOKEN")
-OWNER_ID = 446393818  # Только ты управляешь
+ALLOWED_USER_ID = 446393818  # Только ваш Telegram ID
 
-used_ids = set()
+# Главное меню
+def get_main_keyboard():
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton("🆓 Бесплатный разбор", callback_data="free")],
+        [InlineKeyboardButton("🐝 Платный разбор от 15$", callback_data="paid")],
+        [InlineKeyboardButton("👑 Пакет VIP от 60$", callback_data="vip")],
+        [InlineKeyboardButton("📜 Обо мне / Отзывы", callback_data="about")]
+    ])
 
-def media_path(filename):
-    return os.path.join(os.getcwd(), filename)
+# Кнопка обновления
+def get_refresh_keyboard():
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton("🔄 Обновить страницу", callback_data="refresh")]
+    ])
 
-def start(update: Update, context: CallbackContext):
-    user_id = update.effective_user.id
-    if user_id not in used_ids:
-        used_ids.add(user_id)
+# Проверка ID
+def is_authorized(user_id: int) -> bool:
+    return user_id == ALLOWED_USER_ID
 
-    keyboard = [['📋 Бесплатный разбор'],
-                ['💸 Платный разбор от 15$'],
-                ['👑 Пакет VIP от 60$'],
-                ['📜 Обо мне / Отзывы']]
-    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
-    update.message.reply_text("👇 Ниже вы можете выбрать действие:", reply_markup=reply_markup)
-
-def refresh(update: Update, context: CallbackContext):
-    context.bot.send_message(chat_id=update.effective_chat.id, text="/start")
-
-def handle_message(update: Update, context: CallbackContext):
-    user_id = update.effective_user.id
-    text = update.message.text
-
-    if user_id != OWNER_ID:
-        update.message.reply_text("⛔️ Извините, бот доступен только автору.")
+# Команда /start
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_authorized(update.effective_user.id):
+        await update.message.reply_text("⛔ Доступ запрещён.")
         return
 
-    if text == '📋 Бесплатный разбор':
-        context.bot.send_voice(chat_id=update.effective_chat.id, voice=open(media_path("intro-0.ogg"), "rb"))
-        update.message.reply_text("🧠 Расшифровать самому", reply_markup=ReplyKeyboardMarkup([['🔄 Обновить страницу']], resize_keyboard=True))
+    await update.message.reply_audio(audio=InputFile("intro-0.ogg"), caption="👇 Ниже вы можете выбрать действие:", reply_markup=get_main_keyboard())
 
-    elif text == '💸 Платный разбор от 15$':
-        context.bot.send_photo(chat_id=update.effective_chat.id, photo=open(media_path("pic2.png"), "rb"))
-        update.message.reply_text("🔄 Обновить страницу", reply_markup=ReplyKeyboardMarkup([['🔄 Обновить страницу']], resize_keyboard=True))
+# Обработка нажатий
+async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    user_id = query.from_user.id
 
-    elif text == '👑 Пакет VIP от 60$':
-        context.bot.send_photo(chat_id=update.effective_chat.id, photo=open(media_path("pic3.png"), "rb"))
-        update.message.reply_text("🔄 Обновить страницу", reply_markup=ReplyKeyboardMarkup([['🔄 Обновить страницу']], resize_keyboard=True))
+    if not is_authorized(user_id):
+        await query.message.reply_text("⛔ Доступ запрещён.")
+        return
 
-    elif text == '📜 Обо мне / Отзывы':
-        context.bot.send_photo(chat_id=update.effective_chat.id, photo=open(media_path("Voprosi.png"), "rb"))
-        update.message.reply_text("🔄 Обновить страницу", reply_markup=ReplyKeyboardMarkup([['🔄 Обновить страницу']], resize_keyboard=True))
+    # Удаление предыдущих сообщений
+    try:
+        await context.bot.delete_message(chat_id=query.message.chat_id, message_id=query.message.message_id)
+    except Exception:
+        pass
 
-    elif text == '🧠 Расшифровать самому':
-        update.message.reply_text("✍️ ЖМИ СЮДА — заполни ФОРМУ")
+    # Переходы
+    if query.data == "free":
+        await context.bot.send_photo(chat_id=user_id, photo=InputFile("pic1.png"))
+        await context.bot.send_message(chat_id=user_id, text="🧠 Расшифровать самому", reply_markup=get_refresh_keyboard())
 
-    elif text == '🔄 Обновить страницу':
-        refresh(update, context)
+    elif query.data == "paid":
+        await context.bot.send_photo(chat_id=user_id, photo=InputFile("pic2.png"))
+        await context.bot.send_message(chat_id=user_id, text="Платный разбор от 15$", reply_markup=get_refresh_keyboard())
 
-    else:
-        update.message.reply_text("Не понял... Выберите действие из меню.")
+    elif query.data == "vip":
+        await context.bot.send_photo(chat_id=user_id, photo=InputFile("pic3.png"))
+        await context.bot.send_message(chat_id=user_id, text="Пакет VIP от 60$", reply_markup=get_refresh_keyboard())
 
+    elif query.data == "about":
+        await context.bot.send_photo(chat_id=user_id, photo=InputFile("pic4.png"))
+        await context.bot.send_message(chat_id=user_id, text="Отзывы и информация:", reply_markup=get_refresh_keyboard())
+
+    elif query.data == "refresh":
+        await context.bot.send_message(chat_id=user_id, text="🔄 Обновляем...", reply_markup=None)
+        await start(update, context)
+
+# Запуск бота
 def main():
-    updater = Updater(TOKEN, use_context=True)
-    dp = updater.dispatcher
-    dp.add_handler(CommandHandler("start", start))
-    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_message))
-    updater.start_polling()
-    updater.idle()
+    app = Application.builder().token(TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CallbackQueryHandler(handle_callback))
+    app.run_polling()
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
