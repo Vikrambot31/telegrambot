@@ -1,31 +1,28 @@
 import os
 from dotenv import load_dotenv
-
 from telegram import Update, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, CallbackQueryHandler, filters
 from gen_keys import get_gate_description
 import asyncio
 
-# Загружаем переменные окружения
+# Загружаем токен
 load_dotenv()
 TOKEN = os.getenv("BOT_TOKEN")
 
-# ID владельца бота (твой)
+# Твой Telegram ID
 OWNER_ID = 446393818
 
 # Проверка на владельца
 def is_owner(user_id: int) -> bool:
     return user_id == OWNER_ID
 
-used_ids = set()
-
+# Кнопки меню
 keyboard = [
     ["🆓 Бесплатный разбор"],
     ["💸 Платный разбор от 15$"],
     ["👑 Пакет VIP от 60$"],
     ["📜 Обо мне / Отзывы"]
 ]
-
 menu_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
 
 def get_form_buttons():
@@ -39,6 +36,11 @@ def get_contact_button():
         [InlineKeyboardButton("📲 Написать в Telegram", url="https://t.me/Vikram_2027")]
     ])
 
+def get_refresh_button():
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton("🔄 Обновить страницу", callback_data="refresh")]
+    ])
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     if not is_owner(user_id):
@@ -50,14 +52,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         with open("s1.webp", "rb") as sticker:
             await context.bot.send_sticker(chat_id, sticker)
-    except Exception as e:
-        print("Ошибка при отправке стикера:", e)
+    except:
+        pass
 
     try:
         with open("intro-0.ogg", "rb") as audio:
             await context.bot.send_audio(chat_id, audio)
-    except Exception as e:
-        print("Ошибка при отправке аудио:", e)
+    except:
+        pass
 
     await update.message.reply_text("Выберите интересующий вас пункт меню:", reply_markup=menu_markup)
 
@@ -72,21 +74,17 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
         await query.message.reply_text("Пока что функция в разработке")
 
+    elif query.data == "refresh":
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="🔁 Перезапускаем..."
+        )
+        await start(update, context)
+
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     user_id = update.effective_user.id
     text = update.message.text.lower()
-
-    if context.user_data.get("awaiting_gates"):
-        try:
-            gates = [int(x.strip()) for x in text.split(",")][:5]
-            result = get_gate_description(gates)
-            used_ids.add(user_id)
-            context.user_data["awaiting_gates"] = False
-            await update.message.reply_text(result)
-            return
-        except:
-            context.user_data["awaiting_gates"] = False
 
     if "бесплатный" in text:
         await update.message.reply_text("Вы выбрали бесплатный разбор.")
@@ -99,23 +97,20 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             except:
                 pass
 
-        await asyncio.sleep(1)
-
         try:
-            with open("x1.ogg", " "rb") as audio:
+            with open("x1.ogg", "rb") as audio:
                 await context.bot.send_audio(chat_id, audio)
         except:
             pass
 
-        await asyncio.sleep(1)
+        await update.message.reply_text("👇 Ниже вы можете выбрать действие:", reply_markup=get_form_buttons())
 
-        await update.message.reply_text(
-            "👇 Ниже вы можете выбрать действие:",
-            reply_markup=get_form_buttons()
-        )
+        await asyncio.sleep(1)
+        await update.message.reply_text("🔄 Обновить страницу:", reply_markup=get_refresh_button())
 
     elif "платный" in text:
         await update.message.reply_text("💸 Платный разбор. Информация ниже.")
+
         for fname in ["pic4.png", "pic4-1.png", "pic5.png"]:
             try:
                 with open(fname, "rb") as img:
@@ -123,15 +118,21 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     await asyncio.sleep(0.5)
             except:
                 pass
+
         try:
             with open("x2.ogg", "rb") as audio:
                 await context.bot.send_audio(chat_id, audio)
         except:
             pass
+
         await update.message.reply_text("👇", reply_markup=get_contact_button())
+
+        await asyncio.sleep(1)
+        await update.message.reply_text("🔄 Обновить страницу:", reply_markup=get_refresh_button())
 
     elif "vip" in text:
         await update.message.reply_text("👑 Пакет VIP: смотрите материалы ниже.")
+
         for fname in ["pic6.png", "pic5.png", "Voprosi.png"]:
             try:
                 with open(fname, "rb") as img:
@@ -139,12 +140,17 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     await asyncio.sleep(0.5)
             except:
                 pass
+
         try:
             with open("x3.ogg", "rb") as audio:
                 await context.bot.send_audio(chat_id, audio)
         except:
             pass
+
         await update.message.reply_text("👇", reply_markup=get_contact_button())
+
+        await asyncio.sleep(1)
+        await update.message.reply_text("🔄 Обновить страницу:", reply_markup=get_refresh_button())
 
     elif "обо мне" in text or "отзывы" in text:
         await update.message.reply_text(
@@ -152,8 +158,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "https://www.instagram.com/vikram_hd_2027\n"
             "Ниже — примеры реальных сессий:"
         )
-
-        await asyncio.sleep(1)
 
         try:
             with open("Razbor_na_God.pdf", "rb") as pdf:
@@ -168,6 +172,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             pass
 
         await update.message.reply_text("👇", reply_markup=get_contact_button())
+
+        await asyncio.sleep(1)
+        await update.message.reply_text("🔄 Обновить страницу:", reply_markup=get_refresh_button())
 
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
     print(f"Произошла ошибка: {context.error}")
