@@ -1,39 +1,37 @@
-import os
-import asyncio
-from dotenv import load_dotenv
-
-from telegram import (
-    Update, ReplyKeyboardMarkup, InlineKeyboardMarkup, InlineKeyboardButton
-)
 from telegram.ext import (
-    Application, CommandHandler, MessageHandler,
-    ContextTypes, CallbackQueryHandler, filters
+    Application, CommandHandler, CallbackQueryHandler, MessageHandler,
+    ContextTypes, filters
 )
+from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
+from dotenv import load_dotenv
+import os
+import logging
+from cryptography.fernet import Fernet
 
-from gen_keys import get_gate_description
-
-# Загрузка токена
+# Загрузка переменных окружения из .env
 load_dotenv()
 TOKEN = os.getenv("BOT_TOKEN")
-print(f"Loaded token: {TOKEN}")  # This will print the loaded token to the console
+FERNET_KEY = os.getenv("FERNET_KEY")
+print(f"Loaded token: {TOKEN}")
 
+# Инициализация Fernet для безопасности
+fernet = Fernet(FERNET_KEY)  # Для работы с .env.enc
+
+# Логирование
+logging.basicConfig(filename='bot.log', level=logging.INFO)
+
+# Кнопки для меню
 keyboard = [
     ["🆓 Бесплатный разбор"],
     ["💸 Платный разбор от 15$"],
     ["👑 Пакет VIP от 60$"],
     ["📜 Обо мне / Отзывы"]
 ]
-menu_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+menu_markup = InlineKeyboardMarkup(keyboard, resize_keyboard=True)
 
 def get_form_buttons():
     return InlineKeyboardMarkup([ 
         [InlineKeyboardButton("📝 ЖМИ СЮДА — заполни ФОРМУ", url="https://freehumandesignchart.com/")],
-        [InlineKeyboardButton("🔄 Обновить страницу", callback_data="refresh")]
-    ])
-
-def get_contact_button():
-    return InlineKeyboardMarkup([ 
-        [InlineKeyboardButton("📲 Написать в Telegram", url="https://t.me/Vikram_2027")],
         [InlineKeyboardButton("🔄 Обновить страницу", callback_data="refresh")]
     ])
 
@@ -58,9 +56,7 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
-    if query.data == "decode_self":
-        await query.message.reply_text("Пока что функция в разработке.")
-    elif query.data == "refresh":
+    if query.data == "refresh":
         chat_id = update.effective_chat.id
         await context.bot.send_message(chat_id, "🔄 Обновление...")
         await start(update, context)
@@ -75,7 +71,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             try:
                 with open(fname, "rb") as img:
                     await context.bot.send_photo(chat_id, img)
-                    await asyncio.sleep(0.5)
             except:
                 pass
         try:
@@ -91,7 +86,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             try:
                 with open(fname, "rb") as img:
                     await context.bot.send_photo(chat_id, img)
-                    await asyncio.sleep(0.5)
             except:
                 pass
         try:
@@ -99,7 +93,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await context.bot.send_audio(chat_id, audio)
         except:
             pass
-        await update.message.reply_text("👇", reply_markup=get_contact_button())
+        await update.message.reply_text("👇", reply_markup=get_form_buttons())
 
     elif "vip" in text:
         await update.message.reply_text("👑 Пакет VIP: смотрите материалы ниже.")
@@ -107,7 +101,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             try:
                 with open(fname, "rb") as img:
                     await context.bot.send_photo(chat_id, img)
-                    await asyncio.sleep(0.5)
             except:
                 pass
         try:
@@ -115,7 +108,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await context.bot.send_audio(chat_id, audio)
         except:
             pass
-        await update.message.reply_text("👇", reply_markup=get_contact_button())
+        await update.message.reply_text("👇", reply_markup=get_form_buttons())
 
     elif "обо мне" in text or "отзывы" in text:
         await update.message.reply_text(
@@ -129,18 +122,18 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     await context.bot.send_document(chat_id, doc)
             except:
                 pass
-        await update.message.reply_text("👇", reply_markup=get_contact_button())
+        await update.message.reply_text("👇", reply_markup=get_form_buttons())
 
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
     print(f"Произошла ошибка: {context.error}")
 
 def main():
-    app = Application.builder().token(TOKEN).build()  # Creating the bot with the token provided
-    app.add_handler(CommandHandler("start", start))  # Add handler for the /start command
-    app.add_handler(CallbackQueryHandler(handle_callback))  # Add handler for button click callbacks
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))  # Add handler for text messages
-    app.add_error_handler(error_handler)  # Add error handler
-    app.run_polling()  # Start polling for updates
+    app = Application.builder().token(TOKEN).build()  # Создание бота с токеном
+    app.add_handler(CommandHandler("start", start))  # Обработчик команды /start
+    app.add_handler(CallbackQueryHandler(handle_callback))  # Обработчик кнопок
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))  # Обработчик текстовых сообщений
+    app.add_error_handler(error_handler)  # Обработчик ошибок
+    app.run_polling()  # Запуск бота
 
 if __name__ == "__main__":
-    main()  # Run the bot
+    main()  # Запуск бота
