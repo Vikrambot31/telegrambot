@@ -1,5 +1,5 @@
 import os
-from telegram import Update, ReplyKeyboardMarkup
+from telegram import Update, ReplyKeyboardMarkup, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import (
     ApplicationBuilder, CommandHandler,
     MessageHandler, ContextTypes, filters
@@ -65,32 +65,34 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logging.warning(f"User {user.id} добавлен в BLACKLIST: {text}")
         return
 
-    # Реакции на каждую кнопку
+    contact_button = InlineKeyboardMarkup([[InlineKeyboardButton("👉 Написать мне", url="https://t.me/Vikram_2027")]])
+    form_button = InlineKeyboardMarkup([[InlineKeyboardButton("📥 Заполнить форму", url="https://freehumandesignchart.com/")]])
+
     if text == "🆓 Бесплатный разбор":
         for file in ["pic1.png", "pic2.png", "pic3.png"]:
             await context.bot.send_photo(chat_id=user.id, photo=open(file, "rb"))
         await context.bot.send_voice(chat_id=user.id, voice=open("x1.ogg", "rb"))
-        await context.bot.send_message(chat_id=user.id, text="📥 Заполнить форму: https://freehumandesignchart.com/")
-        await context.bot.send_message(chat_id=user.id, text="👉 Написать мне: https://t.me/Vikram_2027")
+        await context.bot.send_message(chat_id=user.id, text="📥 Заполнить форму:", reply_markup=form_button)
+        await context.bot.send_message(chat_id=user.id, text="👉 Написать мне:", reply_markup=contact_button)
 
     elif text == "💸 Платный разбор от 17$":
         for file in ["pic4.png", "pic5.png"]:
             await context.bot.send_photo(chat_id=user.id, photo=open(file, "rb"))
         await context.bot.send_voice(chat_id=user.id, voice=open("x2.ogg", "rb"))
-        await context.bot.send_message(chat_id=user.id, text="👉 Написать мне: https://t.me/Vikram_2027")
+        await context.bot.send_message(chat_id=user.id, text="👉 Написать мне:", reply_markup=contact_button)
 
     elif text == "👑 Пакет VIP от 60$":
         for file in ["pic6.png", "pic5.png", "Voprosi.png"]:
             await context.bot.send_photo(chat_id=user.id, photo=open(file, "rb"))
         await context.bot.send_voice(chat_id=user.id, voice=open("x3.ogg", "rb"))
-        await context.bot.send_message(chat_id=user.id, text="👉 Написать мне: https://t.me/Vikram_2027")
+        await context.bot.send_message(chat_id=user.id, text="👉 Написать мне:", reply_markup=contact_button)
 
     elif text == "📜 Обо мне / Отзывы":
         await context.bot.send_message(chat_id=user.id, text="📄 Здесь вы можете прочитать про отзывы и систему — мой Instagram:\nhttps://www.instagram.com/vikram_hd_2027\n\nНиже — примеры:")
         for file in ["Prognoz_Love_god.pdf", "primer_prognoz2.pdf"]:
             await context.bot.send_document(chat_id=user.id, document=open(file, "rb"))
         await context.bot.send_voice(chat_id=user.id, voice=open("primer_razbora.ogg", "rb"))
-        await context.bot.send_message(chat_id=user.id, text="👉 Написать мне: https://t.me/Vikram_2027")
+        await context.bot.send_message(chat_id=user.id, text="👉 Написать мне:", reply_markup=contact_button)
 
     else:
         await context.bot.send_message(chat_id=user.id, text="✅ Я вас понял.")
