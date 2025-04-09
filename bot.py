@@ -10,6 +10,8 @@ import logging
 # ✅ Загрузка переменных окружения
 load_dotenv()
 TOKEN = os.getenv("BOT_TOKEN")
+if not TOKEN:
+    raise ValueError("❌ BOT_TOKEN не найден в .env")
 
 # ✅ ID разрешённых пользователей
 ALLOWED_IDS = [446393818]

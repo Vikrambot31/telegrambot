@@ -705,3 +705,24 @@ INFO:httpx:HTTP Request: POST https://api.telegram.org/bot7419809164:AAFq1oaDm6K
 INFO:httpx:HTTP Request: POST https://api.telegram.org/bot7419809164:AAFq1oaDm6KUWp57kQhaPtI16gwl0iihnB4/getUpdates "HTTP/1.1 200 OK"
 INFO:httpx:HTTP Request: POST https://api.telegram.org/bot7419809164:AAFq1oaDm6KUWp57kQhaPtI16gwl0iihnB4/getUpdates "HTTP/1.1 200 OK"
 INFO:httpx:HTTP Request: POST https://api.telegram.org/bot7419809164:AAFq1oaDm6KUWp57kQhaPtI16gwl0iihnB4/getUpdates "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.telegram.org/bot7419809164:AAFq1oaDm6KUWp57kQhaPtI16gwl0iihnB4/getMe "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.telegram.org/bot7419809164:AAFq1oaDm6KUWp57kQhaPtI16gwl0iihnB4/deleteWebhook "HTTP/1.1 200 OK"
+INFO:apscheduler.scheduler:Scheduler started
+INFO:telegram.ext.Application:Application started
+INFO:httpx:HTTP Request: POST https://api.telegram.org/bot7419809164:AAFq1oaDm6KUWp57kQhaPtI16gwl0iihnB4/getUpdates "HTTP/1.1 200 OK"
+INFO:root:User 446393818 вызвал /start
+INFO:httpx:HTTP Request: POST https://api.telegram.org/bot7419809164:AAFq1oaDm6KUWp57kQhaPtI16gwl0iihnB4/sendMessage "HTTP/1.1 200 OK"
+INFO:root:User 446393818 вызвал /start
+INFO:httpx:HTTP Request: POST https://api.telegram.org/bot7419809164:AAFq1oaDm6KUWp57kQhaPtI16gwl0iihnB4/sendMessage "HTTP/1.1 200 OK"
+INFO:root:User 446393818 вызвал /start
+INFO:httpx:HTTP Request: POST https://api.telegram.org/bot7419809164:AAFq1oaDm6KUWp57kQhaPtI16gwl0iihnB4/sendMessage "HTTP/1.1 200 OK"
+INFO:root:User 446393818 вызвал /start
+INFO:httpx:HTTP Request: POST https://api.telegram.org/bot7419809164:AAFq1oaDm6KUWp57kQhaPtI16gwl0iihnB4/sendMessage "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.telegram.org/bot7419809164:AAFq1oaDm6KUWp57kQhaPtI16gwl0iihnB4/getUpdates "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.telegram.org/bot7419809164:AAFq1oaDm6KUWp57kQhaPtI16gwl0iihnB4/getUpdates "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.telegram.org/bot7419809164:AAFq1oaDm6KUWp57kQhaPtI16gwl0iihnB4/getMe "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.telegram.org/bot7419809164:AAFq1oaDm6KUWp57kQhaPtI16gwl0iihnB4/deleteWebhook "HTTP/1.1 200 OK"
+INFO:apscheduler.scheduler:Scheduler started
+INFO:telegram.ext.Application:Application started
+INFO:httpx:HTTP Request: POST https://api.telegram.org/bot7419809164:AAFq1oaDm6KUWp57kQhaPtI16gwl0iihnB4/getUpdates "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.telegram.org/bot7419809164:AAFq1oaDm6KUWp57kQhaPtI16gwl0iihnB4/getUpdates "HTTP/1.1 200 OK"
